@@ -1,0 +1,10 @@
+.sliders{
+    display: flex;
+    position: fixed;
+    right:0;
+    bottom: 1%;
+    gap: 10px;
+    flex-direction: column;
+    z-index: 2;
+
+}

@@ -1,0 +1,36 @@
+.info_slider_text{
+    text-decoration: underline;
+    color:#3069AF;
+    cursor: pointer;
+}
+
+
+.info-costum-slider {
+    display: flex;
+    align-items: center;
+    width: 150px;
+    height: 50px;
+    padding: 5px;
+    background-color: white;
+    border-radius: 20px 0px 0px 20px;
+    border: 1px solid #8AB5D8;
+    /* border-radius: 20px;  */
+    box-shadow: 0 3px 5px rgba(0, 0, 0, 0.3);
+    transform: translateX(105%);
+    transition: transform 0.3s ease-in;
+}
+
+.info-costum-slider:hover {
+    transform: translateX(35%);
+}
+  
+.costum-slider-icon {
+    width: 30px;
+    padding-left: 5px;
+    height: 20px;
+    background-size: contain;
+    margin-right: 10px;
+    background-size: contain; /* Ensure the icon fits within the container */
+    background-repeat: no-repeat;
+}
+  

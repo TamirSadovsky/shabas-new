@@ -1,0 +1,29 @@
+.explanation-section{
+    direction: rtl;
+    /* padding: 40px; */
+    color: black;
+    width: 70%;
+}
+
+.explanation-content{
+    font-size: 21px;
+}
+
+.explanation-title{
+    font-weight: 700;
+    font-size: 20px;
+}
+
+.explanation-wrapper{
+     display: flex;
+     flex-direction: row;
+     justify-content: space-between;
+}
+
+.final-work-explanation{
+    background-color: rgba(172,240,244, 0.6) !important;
+    padding: 8px 30px 8px 30px;
+    border-radius: 20px;
+    line-height: 27px;
+    box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.25);
+}

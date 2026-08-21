@@ -1,0 +1,44 @@
+.CTD-element_wrapper{
+    color:black;
+    border: solid 1px #8AB5D8;
+    display: flex;
+    justify-content: center;
+    position: relative;
+    min-height: 40px;
+    align-items: center;
+    width: 50%;
+    border-radius: 20px;
+    height: 100%;
+    text-align: center;
+    min-height: 70px;
+    cursor: pointer;
+}
+
+.CTD-element_wrapper:hover{
+    background-color: white;
+}
+
+.CTD-element_circle{
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    background-color: #8AB5D8;
+    border-radius: 100%;
+    right: -20px;
+
+}
+
+.CTD-element_circle.CTD-correct-circle::after{
+    content: url('../../assets/check-empty.svg');
+    position: absolute;
+    right: 4px;
+    top:4px;
+    width: 15px;
+    border-radius: 30px;
+}
+
+.CTD-element_circle.CTD-correct-circle{
+    background-color: white;
+    border: solid 3px #72C770;
+    z-index: 2;
+}

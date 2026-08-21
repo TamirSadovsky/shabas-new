@@ -1,0 +1,32 @@
+.textarea-autosize-wrapper{
+    position: relative;
+    text-align: center;
+}
+
+.textarea-lettercounter{
+    position: absolute;
+    color: black;
+    left: 60px;
+    bottom: 20px;
+    font-size: 14px;
+    color: #3072AF;
+
+}
+
+.textarea-teachers-note{
+    position: absolute;
+    right: -20px;
+    cursor: pointer;
+}
+
+[contenteditable=true]:empty:before{
+    content: attr(data-placeholder);
+    pointer-events: none;
+    display: block;
+    position: 'absolute';
+    top: 20px;
+    right: '20px';
+    color: '#999';
+    text-align:'right';
+    opacity: 0.5;
+}

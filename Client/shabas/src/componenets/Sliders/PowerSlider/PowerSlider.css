@@ -1,0 +1,175 @@
+/* המכולה הראשית של הסליידר - מבוסס על InfoSlider */
+.power-costum-slider {
+    display: flex;
+    align-items: center;
+    width: 150px;
+    height: 50px;
+    padding: 5px;
+    background-color: white;
+    border-radius: 20px 0px 0px 20px;
+    /* שימוש בצבע הגבול של כפתור הכיבוי מה-Header */
+    border: 1px solid #f0b1ba;
+    box-shadow: 0 3px 5px rgba(0, 0, 0, 0.3);
+    /* אנימציית כניסה */
+    transform: translateX(105%);
+    transition: transform 0.3s ease-in;
+    cursor: pointer;
+}
+
+/* אפקט ריחוף - פתיחת הסליידר */
+.power-costum-slider:hover {
+    transform: translateX(35%);
+}
+
+/* טקסט הכפתור */
+.power_slider_text {
+    text-decoration: underline;
+    /* צבע אדום תואם לאייקון הכיבוי */
+    color: #d11a2a;
+    font-size: 16px;
+    margin-right: 10px;
+}
+
+/* סגנון האייקון - מבוסס על ה-Header */
+.power-slider-icon-wrapper {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: grid;
+    place-items: center;
+    color: #d11a2a;
+    /* הצבע האדום מה-Header */
+    background: rgba(255, 255, 255, 0.95);
+    margin-right: 5px;
+    transition: transform 120ms ease;
+}
+
+.power-costum-slider:active .power-slider-icon-wrapper {
+    transform: scale(0.97);
+}
+
+/* כפתור כיבוי קומפקטי ב-Header / TopBar (ליד הסוללה) – בלי רקע לבן */
+.power-btn-in-header {
+    width: 50px;
+    height: 50px;
+    border: none;
+    background: transparent;
+    padding: 0;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    transition: transform 0.12s ease, opacity 0.12s ease;
+    flex-shrink: 0;
+}
+
+.power-btn-in-header:hover {
+    opacity: 0.85;
+    transform: scale(1.05);
+}
+
+.power-btn-in-header:active {
+    transform: scale(0.97);
+}
+
+.power-btn-in-header-icon {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+    display: block;
+}
+
+/* --- עיצוב המודאל (ConfirmDialog) מבוסס על הסטייל של ה-Header --- */
+
+.shutdown-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.35);
+    display: grid;
+    place-items: center;
+    z-index: 1000;
+}
+
+.shutdown-modal-container {
+    width: 520px;
+    max-width: 95vw;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 18px 60px rgba(0, 0, 0, 0.35);
+    background: #fff;
+    direction: rtl;
+}
+
+/* שורת הכותרת בסגנון Electron */
+.shutdown-modal-title-bar {
+    height: 32px;
+    background: #f2f2f2;
+    border-bottom: 1px solid #e5e5e5;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 10px;
+    font-size: 12px;
+    color: #444;
+}
+
+.shutdown-modal-close-x {
+    width: 28px;
+    height: 24px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    color: #666;
+    font-size: 16px;
+    border-radius: 6px;
+}
+
+/* גוף המודאל */
+.shutdown-modal-body {
+    padding: 22px 24px 26px;
+}
+
+.shutdown-modal-question {
+    font-weight: 800;
+    font-size: 20px;
+    text-align: center;
+    color: #111;
+    margin-bottom: 22px;
+}
+
+.shutdown-modal-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-direction: row-reverse;
+}
+
+/* כפתור הכיבוי במודאל */
+.btn-confirm-shutdown {
+    padding: 10px 18px;
+    border-radius: 10px;
+    background: #ffffff;
+    border: 1px solid #f0b1ba;
+    color: #111;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+    transition: transform .1s ease;
+}
+
+/* כפתור ביטול במודאל */
+.btn-cancel-shutdown {
+    padding: 10px 18px;
+    border-radius: 10px;
+    border: 1px solid #d9d9d9;
+    background: #f6f6f6;
+    color: #111;
+    font-size: 14px;
+    cursor: pointer;
+    transition: transform .1s ease;
+}
+
+.btn-confirm-shutdown:active,
+.btn-cancel-shutdown:active {
+    transform: scale(0.98);
+}

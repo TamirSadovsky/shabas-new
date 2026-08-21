@@ -1,0 +1,20 @@
+.FW-open-question-wrapper{
+    direction: rtl;
+    /* padding: 30px; */
+    margin-top: 20px;
+
+}
+
+.FW-open-question-buttonsection{
+    text-align: center;
+    padding-bottom: 10px;
+}
+
+.FW-spread-buttons{
+    display: flex;
+    justify-content: space-between;
+}
+
+.FW-submitwork{
+    position: relative;
+}

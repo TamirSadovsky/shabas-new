@@ -1,0 +1,42 @@
+/* כפתור חזרה למסך הראשי – באותו סגנון של הסליידרים */
+.back-to-home-slider {
+    display: flex;
+    align-items: center;
+    width: 150px;
+    height: 50px;
+    padding: 5px;
+    background-color: white;
+    border-radius: 20px 0 0 20px;
+    border: 1px solid #8AB5D8;
+    box-shadow: 0 3px 5px rgba(0, 0, 0, 0.3);
+    transform: translateX(105%);
+    transition: transform 0.3s ease-in;
+    cursor: pointer;
+}
+
+.back-to-home-slider:hover {
+    transform: translateX(35%);
+}
+
+.back-to-home-slider-text {
+    text-decoration: underline;
+    color: #3069AF;
+    font-size: 16px;
+    margin-right: 10px;
+}
+
+.back-to-home-slider-icon-wrapper {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: grid;
+    place-items: center;
+    color: #3069AF;
+    background: rgba(255, 255, 255, 0.95);
+    margin-right: 5px;
+    transition: transform 120ms ease;
+}
+
+.back-to-home-slider:active .back-to-home-slider-icon-wrapper {
+    transform: scale(0.97);
+}

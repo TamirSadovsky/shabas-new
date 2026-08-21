@@ -1,0 +1,47 @@
+.level_button{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: 700;
+    color: white;
+    cursor: pointer;
+    /* height: 60px; */
+    background-color:#8AB5D8 ;
+    width: 84px;
+    height: 60px;
+    padding: 14px 10px 14px 10px;
+    gap:20px;
+    box-shadow: rgba(0, 0, 0, 0.2) 0px 5px 5px, rgba(0, 0, 0, 0.22) 0px 15px 12px;
+    
+
+}
+
+.level_button_wrapper{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: fixed;
+}
+
+.left{
+    transform: scaleX(-1);
+    padding-right: 5px;
+}
+.right{
+    padding-right: 5px;
+}
+
+.button_right{
+    transform: translateY(250px);
+    /* top: 450px; */
+    position: fixed;
+    right: 79px;
+    border-radius: 0 100px 100px 0;
+}
+.button_left{
+    transform: translateY(250px);
+    /* top: 450px; */
+    position: fixed;
+    left: 79px;
+    border-radius: 100px 0 0 100px;
+}

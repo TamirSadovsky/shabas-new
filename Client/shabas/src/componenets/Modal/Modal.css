@@ -1,0 +1,24 @@
+.modal{
+    position: fixed;
+    display: flex;
+    align-self: center;
+    background-color: red;
+    z-index: 10006;
+    /* height: 100vh; */
+}
+
+.backdrop{
+    display: flex;
+    position: fixed !important;
+    height: 100vh;
+    width: 100vw;
+    z-index: 10000;
+    justify-content: center;
+    align-items: center;
+    justify-content: center;
+    background-color:rgba(0,0,0,0.25);
+    position: absolute;
+    left: 0;
+    top: 0;
+}
+

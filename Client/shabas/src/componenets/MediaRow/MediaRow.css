@@ -1,0 +1,84 @@
+.row-outer {
+    width: 100%;
+    margin-bottom: 30px;
+    direction: rtl;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    /* מבטיח שהשורה מתחילה מימין */
+}
+
+.row-title-figma {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    padding-right: 34px;
+    /* יישור הכותרת לקו הכרטיס הראשון (24px חץ + 10px גאפ) */
+    color: white;
+}
+
+.row-inner-wrapper {
+    display: inline-flex;
+    align-items: center;
+    max-width: 100%;
+    width: 100%;
+    gap: 10px;
+    box-sizing: border-box;
+    /* מוודא שהחצים נשארים בתוך האזור הגלוי */
+    min-width: 0;
+}
+
+.row-scroll-area {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    padding: 5px 5px;
+    scrollbar-width: none;
+    flex: 1 1 0;
+    min-width: 0;
+}
+
+.row-scroll-area::-webkit-scrollbar {
+    display: none;
+}
+
+/* עיצוב החץ לפי Figma Properties */
+.row-nav-figma {
+    background: none;
+    border: none;
+    cursor: pointer;
+    width: 24px;
+    /* גודל המעטפת */
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: opacity 0.2s;
+}
+
+.row-nav-figma:hover {
+    opacity: 0.7;
+}
+
+.figma-chevron {
+    width: 6px;
+    /* רוחב החץ */
+    height: 12px;
+    /* גובה החץ */
+    border-left: 2px solid white;
+    /* עובי הקו */
+    border-bottom: 2px solid white;
+    display: block;
+}
+
+.figma-chevron.right {
+    transform: rotate(225deg);
+    /* פונה ימינה > */
+}
+
+.figma-chevron.left {
+    transform: rotate(225deg);
+    /* פונה שמאלה < */
+}

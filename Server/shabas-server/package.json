@@ -1,0 +1,39 @@
+{
+  "name": "Shabas",
+  "version": "1.0.0",
+  "main": "server.js",
+  "bin": "server.js",
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "axios": "^0.27.2",
+    "body-parser": "^1.20.0",
+    "brightness": "^3.0.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "dotenv-cli": "^7.4.4",
+    "express": "^4.18.1",
+    "firebase": "^10.8.0",
+    "firebase-admin": "^12.0.0",
+    "is-running": "^2.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "mssql": "^9.0.1",
+    "nodemon": "^2.0.20"
+  },
+  "scripts": {
+    "start": "nodemon server.js",
+    "dev": "nodemon server.js",
+    "build:dev": "dotenv -e develop.env pkg .",
+    "build:prod": "dotenv -e prod.env pkg ."
+  },
+  "pkg": {
+    "assets": [
+      "dist/**/*",
+      "public/**/*"
+    ],
+    "targets": [
+      "node18-win-x64"
+    ]
+  }
+}

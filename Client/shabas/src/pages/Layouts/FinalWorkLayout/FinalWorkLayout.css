@@ -1,0 +1,42 @@
+.explanation-finalwork{
+    background-color: #ACF0F4 !important;
+}
+
+.FW-question_header{
+    padding-top: 2%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    color: black;
+    line-height: 25px;
+    gap: 5px;
+    justify-items: center;
+}
+
+.fw-backtolearn{
+    font-size: 12px;
+    width: 15%;
+    height: 30px;
+    padding: 5px;
+}
+
+.FW-backtolearnbtn{
+    width: 160px;
+    font-size: 14px;
+    height: 30px;
+    margin: unset;
+}
+
+.FW-changesubject{
+    font-size: 14px;
+    padding: 5px;
+    height: 30px;
+    margin: unset;
+    margin-right: 5px;
+    /* margin-right: 5px; */
+}
+
+.FW-changesubject-wrapper{
+    width: 15%;
+    text-align: right;
+}

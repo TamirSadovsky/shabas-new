@@ -1,0 +1,45 @@
+.category_selectsection{
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+    
+}
+
+.category_wrapper{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 120px;
+}
+
+.category_header{
+    text-align: center;
+}
+
+.category_title{
+    font-size: 44px;
+    font-weight: 700;
+    /* padding: unset !important; */
+}
+
+.category_subheader{
+    font-size: 24px;
+    color: black;
+    font-weight: 700;
+    padding-top:25px;
+}
+
+.atid{
+    position: absolute;
+    left: 2%;
+    top:3%;
+}   
+
+.sbs{
+    position: absolute;
+    right: 2%;
+    top:3%;
+
+}
+

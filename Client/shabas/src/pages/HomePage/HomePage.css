@@ -1,0 +1,848 @@
+/* --- Global Isolation Wrapper – מכסה את כל הדף כדי שלא ייראה רקע אחר --- */
+.figma-namespace {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100vw;
+    min-width: 100%;
+    height: 100vh;
+    min-height: 100%;
+    background: linear-gradient(180deg, #0F172A 0%, #1E293B 100%) !important;
+    z-index: 10;
+    overflow-y: auto;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    color: white;
+    font-family: 'Rubik';
+    box-sizing: border-box;
+}
+
+/* כשעמוד הבית פעיל – המעטפת ממלאת את כל המסך */
+.hp-wrapper.figma-namespace {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+}
+
+.watermark-bg {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 800px;
+    height: 800px;
+    background: url('../../assets/sbs_logo.svg') no-repeat center;
+    background-size: contain;
+    opacity: 0.03;
+    pointer-events: none;
+    z-index: -1;
+}
+
+/* --- Top Bar Header (Frame 89) --- */
+.hp-top-bar {
+    width: calc(100% + 30px);
+    height: 91px;
+    background: #8BB6D9;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    /* הזזה שמאלה: פחות padding משמאל, יותר מימין */
+    padding: 0 40px 0 24px;
+    box-sizing: border-box;
+    position: sticky;
+    top: 0;
+    z-index: 20;
+}
+
+.hp-header-left {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 130px;
+    /* מקום לכפתור הכיבוי מימין – הסוללה לא תחפוף */
+    padding-right: 62px;
+}
+
+/* כפתור הכיבוי מימין לסוללה, במקום קבוע – לא זז עם שינויי הסוללה */
+.hp-header-left .power-btn-in-header {
+    position: absolute;
+    right: 24px;
+    top: 50%;
+    transform: translateY(-50%);
+    margin: 0;
+}
+
+.battery-icon-figma {
+    width: 32px;
+    height: 16px;
+    background-image: url('../../assets/edit.png');
+    /* Replace with battery.png if available */
+    background-size: contain;
+    background-repeat: no-repeat;
+}
+
+.hp-header-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    /* Frame 88 Gap */
+}
+
+.hp-greeting-text {
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0;
+    font-family: 'Assistant', 'Rubik';
+}
+
+.hp-logo-group {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.hp-atid-logo,
+.hp-sbs_logo {
+    height: 56px;
+    width: auto;
+}
+
+/* --- Section Container & Titles (Frame 64/69) --- */
+.hp-main-content {
+    width: 100%;
+    box-sizing: border-box;
+    /* רקע אטום – מונע מרקע/watermark של מסך אחר להופיע מאחורי התוכן */
+    background: linear-gradient(180deg, #0F172A 0%, #1E293B 100%);
+    flex: 1;
+    /* ריווח משני הצדדים כדי שהחצים לא ייחתכו */
+    padding: 10px 32px 24px 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    /* מרווח בין שורות קטגוריה */
+}
+
+.section-container {
+    width: 100%;
+}
+
+.row-header-figma {
+    display: flex;
+    flex-direction: row-reverse;
+    align-items: center;
+    justify-content: flex-start;
+    height: 26px;
+    margin-bottom: 12px;
+    gap: 10px;
+}
+
+.header-right-group {
+    display: flex;
+    flex-direction: row-reverse;
+    align-items: center;
+    gap: 10px;
+}
+
+.row-title-text {
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0;
+    line-height: 26px;
+    font-family: 'Assistant', 'Rubik';
+}
+
+.row-icon {
+    width: 28px;
+    height: 28px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+.icon-edit {
+    background-image: url('../../assets/edit.png');
+}
+
+.icon-video {
+    background-image: url('../../assets/movie.png');
+}
+
+.icon-book {
+    background-image: url('../../assets/book-2.png');
+}
+
+.icon-music {
+    background-image: url('../../assets/music.png');
+}
+
+.nav-arrow-box {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.row-nav-arrow {
+    width: 6px;
+    height: 12px;
+    border-left: 2px solid white;
+    border-bottom: 2px solid white;
+    transform: rotate(45deg);
+    /* Chevron < */
+    opacity: 0.8;
+}
+
+/* --- Learning Card (198x108) --- */
+.hp-media-card {
+    width: 198px !important;
+    height: 108px !important;
+    background-color: #3072AF !important;
+    border-radius: 4px;
+    padding: 8px 12px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    cursor: pointer;
+}
+
+.card-internal-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.card-progress-info {
+    display: flex;
+    flex-direction: column;
+    text-align: right;
+}
+
+.progress-percent-text {
+    font-size: 28px;
+    font-weight: 700;
+}
+
+.card-image-container {
+    width: 72px;
+    height: 72px;
+    background: white;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.card-main-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.card-title-bottom {
+    font-size: 16px;
+    font-weight: 700;
+    text-align: right;
+    padding-top: 4px;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* --- Video Card (141px width) --- */
+.hp-video-card {
+    width: 141px !important;
+    display: flex;
+    flex-direction: column;
+    cursor: pointer;
+}
+
+.video-thumb-container {
+    width: 141px;
+    height: 78px;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.video-thumb-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.video-footer {
+    height: 29px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.video-title-text {
+    font-family: 'Rubik';
+    font-weight: 500;
+    font-size: 12px;
+    line-height: 46px;
+}
+
+/* --- Audio Card (Scrolling Safety) --- */
+.audio-visual-box {
+    position: relative;
+    width: 320px;
+    aspect-ratio: 16/9;
+    background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+    border-radius: 15px;
+    pointer-events: none;
+    /* Clicks pass to scroll row */
+    z-index: 1;
+}
+
+.audio-play-hotspot {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100px;
+    height: 100px;
+    pointer-events: auto;
+    /* Only center captures play/pause */
+    cursor: pointer;
+    z-index: 10;
+}
+
+.audio-play-overlay {
+    width: 60px;
+    height: 60px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(5px);
+    border: 2px solid rgba(255, 255, 255, 0.5);
+}
+
+.audio-time-display {
+    position: absolute;
+    top: 10px;
+    left: 12px;
+    background: rgba(0, 0, 0, 0.6);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+}
+
+.audio-progress-track {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.audio-progress-fill {
+    height: 100%;
+    background: #ef4444;
+}
+
+/* --- PDF Preview --- */
+.pdf-first-page-preview {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+}
+
+.pdf-preview-frame {
+    width: 100%;
+    height: 120%;
+    border: none;
+    transform: translateY(-5%);
+    pointer-events: none;
+}
+
+.pdf-touch-shield {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 5;
+}
+
+/* Logos Sizes */
+.hp-atid-logo {
+    height: 50px;
+    /* cite: 557898.jpg */
+    width: 50px;
+    object-fit: contain;
+}
+
+.hp-sbs-logo {
+    height: 56px;
+    /* cite: 5578b4.jpg */
+    width: 56px;
+    object-fit: contain;
+}
+
+.row-icon {
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    display: inline-block;
+}
+
+/* למידה - 24x24 פיקסלים */
+.icon-edit {
+    width: 24px;
+    height: 24px;
+    background-image: url('../../assets/edit.png');
+}
+
+/* צפייה - 24x24 פיקסלים */
+.icon-video {
+    width: 24px;
+    height: 24px;
+    background-image: url('../../assets/movie.png');
+}
+
+/* קריאה - 28x28 פיקסלים */
+.icon-book {
+    width: 28px;
+    height: 28px;
+    background-image: url('../../assets/book-2.png');
+}
+
+/* האזנה - 24x24 פיקסלים */
+.icon-music {
+    width: 24px;
+    height: 24px;
+    background-image: url('../../assets/music.png');
+}
+
+/* --- Learning Card (198x108) --- */
+.hp-media-card {
+    width: 198px !important;
+    /* */
+    height: 108px !important;
+    /* */
+    background-color: #3072AF !important;
+    /* */
+    border-radius: 4px;
+    /* */
+    padding: 8px 12px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    direction: rtl;
+    /* מכריח את האלמנט הראשון (התמונה) להיות בצד ימין */
+    box-sizing: border-box;
+    cursor: pointer;
+}
+
+.card-top-row {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-start;
+    width: 100%;
+}
+
+/* --- צד ימין (תמונה) --- */
+.card-thumb-container {
+    width: 72px;
+    height: 72px;
+    background: white;
+    border-radius: 4px;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.card-thumb-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* --- צד שמאל (אחוזים) --- */
+.card-progress-container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    /* מצמיד את הטקסט שמאלה בתוך ה-RTL */
+    text-align: left;
+}
+
+.progress-status-text {
+    font-size: 11px;
+    color: white;
+    font-weight: 400;
+}
+
+.progress-value-text {
+    font-size: 28px;
+    /* */
+    font-weight: 700;
+    color: white;
+    line-height: 1.1;
+}
+
+/* --- כותרת תחתונה --- */
+.card-footer {
+    width: 100%;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    /* קו הפרדה עדין */
+    padding-top: 4px;
+}
+
+.card-title-text {
+    color: white;
+    font-size: 14px;
+    font-weight: 700;
+    text-align: right;
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    /* מוסיף ... אם הטקסט ארוך מדי */
+}
+
+/* --- Article / PDF Card (198x108 Preview Size) --- */
+.hp-article-card {
+    width: 198px !important;
+    display: flex;
+    flex-direction: column;
+    cursor: pointer;
+    direction: rtl;
+    /* יישור לימין */
+    gap: 8px;
+    /* רווח בין התצוגה המקדימה לכותרת */
+}
+
+/* התצוגה המקדימה מקבלת את המימדים המלאים של הכרטיס */
+.article-preview-container {
+    width: 198px;
+    height: 108px;
+    background: white;
+    /* רקע לבן נקי למסמך */
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+    /* הוספת צל עדין שייתן תחושה של מסמך אמיתי (אופציונלי) */
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.pdf-preview-wrapper {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+}
+
+/* ה-Iframe שואב את המסמך ומתפרס על כל התיבה */
+.article-iframe {
+    position: absolute;
+    top: -10px;
+    /* מושך את המסמך קצת למעלה כדי להסתיר שוליים עליונים */
+    left: -20px;
+    /* מושך שמאלה כדי להסתיר פס גלילה שמאלי (נפוץ ב-RTL) */
+
+    /* הוספת 40 פיקסלים לרוחב ולגובה דוחפת את פסי הגלילה אל מחוץ לאזור הגלוי */
+    width: calc(100% + 40px);
+    height: calc(100% + 40px);
+
+    border: none;
+    pointer-events: none;
+    /* חוסם אינטראקציה כדי לאפשר קליק על הכרטיס */
+}
+
+/* שכבת ההגנה שמאפשרת לחיצה על כל הכרטיס */
+.article-click-shield {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 5;
+    background: transparent;
+}
+
+/* אזור הכותרת מתחת לתמונה */
+.article-footer {
+    width: 100%;
+    display: flex;
+    justify-content: flex-start;
+    /* מצמיד את הטקסט לימין (בגלל RTL) */
+}
+
+.article-title-text {
+    color: white;
+    font-size: 14px;
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* --- Audio Card (198x108 Matches Learning Cards) --- */
+.audio-card-container {
+    width: 198px !important;
+    display: flex;
+    flex-direction: column;
+    direction: rtl;
+    cursor: pointer;
+    gap: 8px;
+    box-sizing: border-box;
+}
+
+/* מסגרת לבנה מסביב לכל הכרטיסיה רק כשמתנגן – בלי להזיז את הדף */
+.audio-card-container.playing {
+    box-shadow: 0 0 0 3px white;
+    border-radius: 6px;
+}
+
+/* הקופסה הכחולה של הנגן */
+.audio-visual-box {
+    position: relative;
+    width: 100%;
+    height: 108px;
+    background: #3072AF;
+    /* צבע אחיד התואם לשאר הכרטיסיות */
+    border-radius: 4px;
+    /* רדיוס אחיד של 4 פיקסלים */
+    pointer-events: none;
+    /* מאפשר לחיצה על ה-hotspot בלבד */
+    z-index: 1;
+    overflow: hidden;
+}
+
+/* אזור הלחיצה למרכז הנגן */
+.audio-play-hotspot {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 60px;
+    height: 60px;
+    pointer-events: auto;
+    cursor: pointer;
+    z-index: 10;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* עיצוב כפתור ה-Play - הוקטן מעט כדי להתאים לגודל החדש */
+.audio-play-overlay {
+    width: 44px;
+    height: 44px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(5px);
+    border: 2px solid rgba(255, 255, 255, 0.5);
+}
+
+/* סמני זמן (0:00) */
+.audio-time-display {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    background: rgba(0, 0, 0, 0.6);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 11px;
+    color: white;
+}
+
+/* פס התקדמות אדום בתחתית הכרטיס */
+.audio-progress-track {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.audio-progress-fill {
+    height: 100%;
+    background: #ef4444;
+}
+
+/* כותרת קובץ השמע - מתחת לקופסה הכחולה */
+.audio-card-container .hp-card-label {
+    color: white;
+    font-size: 14px;
+    font-weight: 700;
+    text-align: right;
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    /* הוספת ... אם הטקסט ארוך מדי */
+}
+
+/* ========================================= */
+/* --- 5. PDF Reader Modal --- */
+/* ========================================= */
+
+/* שכבת ההחשכה ברקע המודאל */
+.pdf-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(15, 23, 42, 0.9);
+    /* כחול-שחור כהה ושקוף */
+    z-index: 100;
+    /* יושב מעל כל המערכת */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(4px);
+    /* אפקט טשטוש עדין לטפט */
+}
+
+/* overlay ייעודי לווידאו – ממלא את כל המסך (פותר scrollbar ב-Windows) */
+.video-modal-overlay {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    background: #0F172A;
+    z-index: 100;
+    display: block;
+    overflow: hidden;
+}
+
+/* החלון המרכזי של הקורא */
+.pdf-modal-content {
+    position: relative;
+    width: 85vw;
+    /* תופס 85% מרוחב המסך */
+    height: 90vh;
+    /* תופס 90% מגובה המסך */
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0px 10px 40px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+    animation: scaleUp 0.3s ease-out;
+    /* אנימציית פתיחה חלקה */
+}
+
+/* כפתור ה-X לסגירה */
+.pdf-close-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    width: 40px;
+    height: 40px;
+    background: #ef4444;
+    /* צבע אדום בולט */
+    color: white;
+    border: none;
+    border-radius: 50%;
+    font-size: 20px;
+    font-weight: bold;
+    cursor: pointer;
+    z-index: 110;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.3);
+    transition: transform 0.2s, background 0.2s;
+}
+
+.pdf-close-btn:hover {
+    transform: scale(1.1);
+    background: #dc2626;
+}
+
+/* ה-Iframe שמציג את ה-PDF בגדול */
+.pdf-reader-iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    background: white;
+}
+
+/* אנימציית הופעה למודאל */
+@keyframes scaleUp {
+    from {
+        transform: scale(0.95);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.video-modal-content {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    background: #0F172A;
+    overflow: hidden;
+    animation: scaleUp 0.3s ease-out;
+}
+
+.video-player-element {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    outline: none;
+    object-fit: cover;
+    display: block;
+}
+
+/* נעילת גלילה כשמודאל וידאו פתוח */
+body.video-modal-open {
+    overflow: hidden;
+}
+
+/* הטריק להסתרת כפתור ה-Adobe Acrobat שמוזרק מהתוסף של הדפדפן */
+.pdf-adobe-blocker {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 65px;
+    height: 65px;
+    background-color: white;
+    /* צבע זהה לרקע המסמך */
+    z-index: 100;
+    pointer-events: auto;
+    /* חוסם לחיצות פיזיות לאזור הזה */
+    border-top-left-radius: 8px;
+    /* כדי שיראה טבעי יותר בפינה */
+}
+
+/* ========================================= */
+/* --- 7. Battery Widget --- */
+/* ========================================= */
+
+/* מעטפת הסוללה (Pill shape) העליונה */
+.battery-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    /* מרווח בין הסוללה לטקסט */
+    direction: ltr;
+    /* מבטיח שהאייקון תמיד משמאל והטקסט מימין */
+}
+
+.battery-percent-text {
+    font-size: 16px;
+    font-weight: 700;
+    color: #354052;
+    /* צבע כחול-אפור התואם במדויק לקווי המתאר של Figma */
+    margin-top: 2px;
+}

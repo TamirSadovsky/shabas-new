@@ -1,0 +1,20 @@
+.primary_button{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 100px;
+    /* padding: 12px 16px 12px 16px; */
+    /* margin-top: 15px; */
+    font-weight: 700;
+    color: white;
+    cursor: pointer;
+    height: 100%;
+
+}
+
+
+.primary_button_wrapper{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}

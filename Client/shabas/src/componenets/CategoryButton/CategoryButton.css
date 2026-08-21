@@ -1,0 +1,55 @@
+.category_button{
+    border-radius: 100px;
+    padding: 10px 16px 10px 16px;
+    margin-top: 15px;
+    font-weight: 700;
+    color: white;
+    cursor: pointer;
+}
+
+.continue{
+    background-color: #3072AF;
+}
+
+.start{
+    background-color: #2AC0B7;
+}
+
+.emoji {
+    transform: translate(0%, 25%);
+}
+
+.gmar{
+    display: flex;
+    color:#2AC0B7;
+    border-color: #2AC0B7;
+    border: 1px solid;
+    width: 8%;
+    gap: 5px;
+    font-weight: 500;
+    cursor: pointer;
+    margin-top:50px ;
+}
+
+.category_button_wrapper{
+    display: flex;
+    justify-content: center;
+}
+
+/* אם אין לך כבר מיקום מוגדר לתמונה */
+.atid {
+  position: relative;   /* שומר על הזרימה אבל מאפשר היסט */
+  left: 40px;           /* מזיז ימינה - שנה ל־20/60 וכו' */
+  z-index: 1;           /* שהתמונה תהיה מעל הרקע */
+}
+
+/* אם התמונה כבר absolute/fixed אצלך – עדכן רק את הערך left */
+.atid {
+  /* position: absolute;  אם כבר מוגדר אל תוסיף שוב */
+  left: 10px !important; /* מזיז ימינה בכוח אם יש חפיפה של חוקים */
+}
+
+/* אפשר גם עם מרג׳ין אם אתה מעדיף לא לשנות position */
+.atid {
+  margin-left: 40px;
+}

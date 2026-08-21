@@ -1,0 +1,48 @@
+.tutorial-img{
+    width: 80%;
+}
+
+.horizontal-seperator{
+    margin: 0 auto;
+    color: rgba(237, 247, 254, 0.6);
+    margin: 20px 0 20px 0;
+}
+
+.tutorial-block-title{
+    color:rgba(50, 155, 177, 1);
+    margin: unset !important;
+    
+}
+
+.tutorial-block-title h3{
+    margin: unset !important;
+}
+
+.explnation-sliders{
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+    justify-content: center;
+}
+
+.tutorial-explanation-title{
+    font-size: 32px;
+    font-weight: 700;
+}
+
+.slider-images{
+    display: flex;
+}
+
+.tutorial-block-img{
+    max-width: 100%;
+}
+
+.tutorial-block-img img{
+    max-width: 520px;
+}
+.tutorial-block-wrapper{
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}

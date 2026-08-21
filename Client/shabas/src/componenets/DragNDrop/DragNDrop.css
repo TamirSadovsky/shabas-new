@@ -1,0 +1,138 @@
+
+.dropable-input{
+    min-width: 150px;
+    min-height: 40px;
+    background-color: azure;
+    width: 99%;
+    border-radius:20px ;
+    border: 1px solid #8AB5D8;
+    /* padding: 10px 20px 10px; */
+    direction: rtl;
+}
+.dropable-input-label{
+    font-size: 21px;
+    /* line-height: ; */
+}
+
+.dnd-wrapper{
+    display: flex;
+}
+
+.dragable-select{
+    color: black;
+}
+
+.label-wrapper{
+    display: flex;
+}
+
+.dnd-wrapper{
+    direction: rtl;
+    padding: 40px;
+    color: black
+}
+
+.inputs-dnd{
+    min-width: 70%;
+    max-width: 70%;
+}
+.options-dnd{
+    display: flex;
+    flex-direction: column;
+    min-width: 30%;
+    max-width: 30%;
+    padding: 30px;
+    gap:8px;
+}
+
+.dragable-row{
+    display: flex;
+    flex-direction: row;
+    align-items:center;
+    gap:10px;
+}
+
+.dropable-row{
+    display: flex;
+    flex-direction: row;
+    min-width: 100%;
+    flex-grow: 1;
+}
+
+.inputs-dnd{
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.dnd-input-group{
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    margin-right: 20px;
+}
+
+.dragable-select{
+    border: 2px solid #3072AF;
+    border-radius: 100px;
+    padding: 5px 18px 5px 18px;
+    /* width: 100%; */
+    width: fit-content;
+    font-size: 20px;
+}
+
+.dragable-select:hover{
+    border: 2px solid white;
+    border-radius: 100px;
+    color:white;
+    background-color:#3072AF ;
+    /* width: 100%; */
+}
+
+.dnd-title{
+    font-weight: 700;
+    color:#3072AF;
+    display: inline;
+    text-align: c;
+}
+
+.options-dnd > .dnd-title{
+    text-align: center;
+    size: 26px;
+    line-height: 30.81px;
+    margin: unset !important; 
+    font-weight: 500;
+}
+
+.available_drop_input{
+    border: 3px solid #3072AF;
+}
+
+.dnd_correct{
+    position: relative;
+    border: 2px solid #72C770 !important;
+    border-radius: 30px;
+    box-sizing: border-box;
+    font-size: 20px;
+    padding-left:50px;
+}
+.dnd_correct:after{
+    content: url('../../assets/check-empty.svg');
+    position: absolute;
+    left:0 ;
+    /* top:15px; */
+    width: 20px;
+    border-radius: 30px;
+    border: 3px solid #72C770 !important;
+    width: 20px;
+    height: 20px;
+    transform: translate(25%, 0);
+    padding: 2px;
+}
+
+.dnd-button_section{
+    display: flex;
+    flex-direction: column;
+    /* align-items: flex-end; */
+    direction: rtl;
+}

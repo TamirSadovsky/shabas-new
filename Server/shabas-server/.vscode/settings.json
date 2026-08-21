@@ -1,0 +1,4 @@
+{
+    "appService.defaultWebAppToDeploy": "/subscriptions/f3b97920-461c-4515-b499-7ee832cb8798/resourceGroups/shabas/providers/Microsoft.Web/sites/shabas-server1",
+    "appService.deploySubpath": "."
+}
