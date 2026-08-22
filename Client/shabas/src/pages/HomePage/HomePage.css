@@ -449,6 +449,13 @@
     width: 100%;
 }
 
+.media-state-message {
+    color: #ffffff;
+    font-size: 18px;
+    padding: 16px 8px;
+    text-align: right;
+}
+
 /* --- צד ימין (תמונה) --- */
 .card-thumb-container {
     width: 72px;

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useId, useCallback } from 'react';
+import React, { useEffect, useState, useId } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import MediaRow from '../../componenets/MediaRow/MediaRow';
 import { PowerButton } from '../../componenets/Sliders/PowerSlider/PowerSlider.jsx';
@@ -15,6 +15,11 @@ import chevronIcon from '../../assets/chevron-right.png';
 
 // הקובץ אינו נמצא ב-repo; יש להניח אותו ב-public/assets כדי שהנגן יעבוד
 const exampleVideo = '/assets/file_example.mp4';
+const fallbackBook = {
+    id: 1,
+    name: 'המשפחה',
+    image: null
+};
 
 // ==========================================
 // BATTERY COMPONENTS (Figma Design)
@@ -211,7 +216,7 @@ const AudioCard = ({ title, audioUrl, isPlaying, onPlay, currentAudioObj }) => {
 };
 
 // Media/Learning Card
-const MediaCard = ({ img, label, progress = "70%", onClick }) => (
+const MediaCard = ({ img, label, progress, onClick }) => (
     <div className="hp-media-card" onClick={onClick}>
         <div className="card-top-row">
             {/* 1. צד ימין: תמונה */}
@@ -220,10 +225,12 @@ const MediaCard = ({ img, label, progress = "70%", onClick }) => (
             </div>
 
             {/* 2. צד שמאל: אחוזים */}
-            <div className="card-progress-container">
-                <span className="progress-status-text">הושלמו</span>
-                <span className="progress-value-text">{progress}</span>
-            </div>
+            {progress && (
+                <div className="card-progress-container">
+                    <span className="progress-status-text">הושלמו</span>
+                    <span className="progress-value-text">{progress}</span>
+                </div>
+            )}
         </div>
 
         {/* 3. חלק תחתון: כותרת הקובץ */}
@@ -274,8 +281,8 @@ const ArticleCard = ({ title, pdfUrl, onOpenModal }) => (
 
 function HomePage({ setPageDirection }) {
     const userState = useSelector(state => state.user);
-    const levelState = useSelector(state => state.level['regular']);
     const dispatch = useDispatch();
+    const [books, setBooks] = useState(null);
 
     // Audio States
     const [currentAudio, setCurrentAudio] = useState(null);
@@ -297,9 +304,48 @@ function HomePage({ setPageDirection }) {
         { title: "שמע 2.mp3", url: audio2 }
     ];
 
-    const handleCategoryClick = (id) => {
+    const handleBookClick = (book) => {
         setPageDirection(false);
-        dispatch({ type: 'PICK_CATEGORY', page: 'welcome', id });
+        dispatch({
+            type: 'PICK_BOOK',
+            bookId: Number(book.id),
+            bookName: book.name,
+            bookImage: book.image
+        });
+    };
+
+    useEffect(() => {
+        let cancelled = false;
+
+        const fetchBooks = async () => {
+            try {
+                const results = await axiosInstance.get('/books');
+                const activeBooks = Array.isArray(results.data?.data)
+                    ? results.data.data
+                    : [];
+
+                if (!cancelled) {
+                    setBooks(activeBooks);
+                }
+            } catch (error) {
+                console.error('Error loading books:', error);
+                if (!cancelled) {
+                    setBooks([fallbackBook]);
+                }
+            }
+        };
+
+        fetchBooks();
+        return () => {
+            cancelled = true;
+        };
+    }, []);
+
+    const resolveBookImage = (image) => {
+        if (typeof image === 'string' && /^(https?:|data:|blob:)/i.test(image)) {
+            return image;
+        }
+        return cata1;
     };
 
     const handlePlayAudio = (url) => {
@@ -369,16 +415,27 @@ function HomePage({ setPageDirection }) {
             <TopBar userName={userState.fullName || 'ישראל ישראלי'} />
 
             <main className="hp-main-content">
-                {levelState && Object.keys(levelState).length > 0 && (
-                    <div className="section-container">
-                        <SectionHeader title="למידה" iconClass="icon-edit" />
+                <div className="section-container">
+                    <SectionHeader title="למידה" iconClass="icon-edit" />
+                    {books === null && (
+                        <div className="media-state-message">טוען ספרים…</div>
+                    )}
+                    {books?.length === 0 && (
+                        <div className="media-state-message">אין ספרים זמינים</div>
+                    )}
+                    {books?.length > 0 && (
                         <MediaRow>
-                            {Object.keys(levelState).map(id => (
-                                <MediaCard key={id} img={cata1} label={levelState[id].name} onClick={() => handleCategoryClick(id)} />
+                            {books.map(book => (
+                                <MediaCard
+                                    key={book.id}
+                                    img={resolveBookImage(book.image)}
+                                    label={book.name}
+                                    onClick={() => handleBookClick(book)}
+                                />
                             ))}
                         </MediaRow>
-                    </div>
-                )}
+                    )}
+                </div>
 
                 <div className="section-container">
                     <SectionHeader title="קריאה" iconClass="icon-book" />

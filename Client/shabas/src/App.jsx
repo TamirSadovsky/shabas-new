@@ -10,6 +10,7 @@ import FinalWorkPage from './pages/FinalWorkPage/FinalWorkPage'
 import axiosInstance from './constants/axios.config'
 import ToturialPage from './pages/TutorialPage/TutorialPage'
 import HomePage from './pages/HomePage/HomePage'
+import logServiceInstance from './logService'
 
 function App() {
     const pageState = useSelector(state => state.page)
@@ -37,6 +38,10 @@ function App() {
         getCurrentUserName();
     }, [])
 
+    useEffect(() => {
+        logServiceInstance.setBookId(pageState.bookId)
+    }, [pageState.bookId])
+
     // ░░░░░░░░░░░░░░░░░░░░░░
     // ╔═╗ FIX: הגנה על questionPage 
     // ░░░░░░░░░░░░░░░░░░░░░░
@@ -53,7 +58,7 @@ function App() {
             <div>
                 <AnimatePresence initial={false}>
                     <motion.div
-                        key={pageState.page + '_' + pageState.id}
+                        key={pageState.page + '_' + pageState.bookId + '_' + pageState.id}
                         initial={{ opacity: 1, x: 0, y: pageDirection ? -768 : 768 }}
                         animate={{ opacity: 1, x: 0, y: 0 }}
                         exit={{ opacity: 1, x: 0, y: pageDirection ? -768 : 768 }}

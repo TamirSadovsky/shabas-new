@@ -22,8 +22,8 @@
     "nodemon": "^2.0.20"
   },
   "scripts": {
-    "start": "nodemon server.js",
-    "dev": "nodemon server.js",
+    "start": "dotenv -e develop.env -- nodemon server.js",
+    "dev": "dotenv -e develop.env -- nodemon server.js",
     "build:dev": "dotenv -e develop.env pkg .",
     "build:prod": "dotenv -e prod.env pkg ."
   },

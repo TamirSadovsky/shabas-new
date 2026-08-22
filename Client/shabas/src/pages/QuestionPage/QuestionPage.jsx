@@ -15,6 +15,7 @@ import logServiceInstance from "../../logService";
 import { debounce, throttle } from "lodash";
 import Modal from "../../componenets/Modal/Modal";
 import FinalWorkModal from "../../componenets/FinalWorkModal/FinalWorkModal";
+import LevelFinshed from "../../componenets/LevelFinished/LevelFinished";
 
 function QuestionPage({ type }) {
 
@@ -32,6 +33,9 @@ function QuestionPage({ type }) {
     const finalQuestionInputRef = useRef("");
     const [lastPageType, setLastPageType] = useState("");
     const [showModalSubmission, setShowModalSubmission] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [loadState, setLoadState] = useState('loading');
+    const [showLevelFinished, setShowLevelFinished] = useState(false);
 
     const decreaseTimeoutRef = useRef(null);
     const increaseTimeoutRef = useRef(null);
@@ -54,22 +58,11 @@ function QuestionPage({ type }) {
             pageState,
             levelStateKeys: levelState ? Object.keys(levelState) : null
         });
-
-        return (
-            <div style={{ padding: "40px", fontSize: "22px" }}>
-                טוען…
-            </div>
-        );
     }
 
     // ---- NOW SAFE TO USE levelState ----
-    const levelEntry =
-        levelState?.regular?.[pageState.id] ||
-        levelState?.finalWork?.[pageState.id] ||
-        null;
-
-    const currentLevel = levelEntry?.level ?? 0;
-    const levelNode = levelState[pageState.id];
+    const levelNode = levelState?.[pageState.id];
+    const currentLevel = levelNode?.level ?? 0;
     const totalLevel = levelNode?.total ?? 0;
 
     // QUESTION indexes
@@ -78,42 +71,71 @@ function QuestionPage({ type }) {
         : null;
 
     const lastKey = questions ? Object.keys(questions).pop() : 0;
-    const allPages = questions ? questions[lastKey].pageId : 0;
+    const allPages = lastKey && questions?.[lastKey]
+        ? questions[lastKey].pageId
+        : 0;
     const questionsLength = questions ? Object.keys(questions).length : 0;
-
-    const [currentPage, setCurrentPage] = useState(1);
 
 
     // ---- FETCH QUESTIONS ----
     useEffect(() => {
-        if (pageState.page === "final_work") {
-            fetchFinalResults();
-        } else {
-            fetchQuestions();
-        }
-    }, [pageState]);
+        const controller = new AbortController();
+        setQuestions(null);
+        setLoadState('loading');
 
-    const fetchQuestions = async () => {
+        if (pageState.page === "final_work") {
+            fetchFinalResults(controller.signal);
+        } else {
+            fetchQuestions(controller.signal);
+        }
+
+        return () => controller.abort();
+    }, [pageState.page, pageState.id, pageState.bookId, userState.id]);
+
+    const fetchQuestions = async (signal) => {
         try {
             const results = await axiosInstance.get(
-                `/questions/get_questions_by_bookid/${pageState.id}`
+                `/questions/get_questions_by_bookid/${pageState.id}`,
+                {
+                    params: {
+                        bookId: pageState.bookId || 1,
+                        userId: userState.id
+                    },
+                    signal
+                }
             );
             console.log("questions", results.data);
-            setQuestions(results.data);
+            setQuestions(Array.isArray(results.data) ? results.data : []);
+            setLoadState('ready');
         } catch (e) {
+            if (e.code === 'ERR_CANCELED') return;
             console.error(e);
+            setLoadState('error');
         }
     };
 
-    const fetchFinalResults = async () => {
+    const fetchFinalResults = async (signal) => {
         try {
             const results = await axiosInstance.get(
-                `/questions/final_work_questions/${pageState.id}`
+                `/questions/final_work_questions/${pageState.id}`,
+                {
+                    params: {
+                        bookId: pageState.bookId || 1,
+                        userId: userState.id
+                    },
+                    signal
+                }
             );
             console.log(results.data);
-            setQuestions(results.data);
+            const loadedQuestions = results.data && typeof results.data === 'object'
+                ? results.data
+                : {};
+            setQuestions(loadedQuestions);
+            setLoadState('ready');
         } catch (e) {
+            if (e.code === 'ERR_CANCELED') return;
             console.error(e);
+            setLoadState('error');
         }
     };
 
@@ -151,7 +173,12 @@ function QuestionPage({ type }) {
 
     // ---- LEVEL CONTROL ----
     const increaseLevel = (explanation, pageType) => {
-        if (actualPageCount + 1 >= questionsLength) return;
+        if (actualPageCount + 1 >= questionsLength) {
+            if (type === "regular") {
+                setShowLevelFinished(true);
+            }
+            return;
+        }
 
         setSide(true);
         setLastPageType(pageType);
@@ -223,23 +250,61 @@ function QuestionPage({ type }) {
     const finalWorkOpenQuestionOnPageChangeHandle = () => {
         if (!finalQuestionInputRef.current?.length) return;
         const answer = finalQuestionInputRef.current;
-
-        setQuestions((prev) => ({
-            ...prev,
-            [questionId]: {
-                ...prev[questionId],
-                answer,
-                done: true,
-            },
-        }));
-
-        logServiceInstance.logfinal({
+        const data = {
             userId: userState.id,
             categoryId: pageState.id,
             questionId,
             answer,
-        });
+        };
+
+        logServiceInstance.saveFinal(data)
+            .then(() => {
+                setQuestions((prev) => ({
+                    ...prev,
+                    [questionId]: {
+                        ...prev[questionId],
+                        answer,
+                        done: true,
+                    },
+                }));
+            })
+            .catch((error) => {
+                console.error('Error saving final-work answer:', error);
+            });
     };
+
+    const submitFinalWork = async () => {
+        try {
+            await axiosInstance.post('/questions/complete_final_work', {
+                userId: userState.id,
+                bookId: pageState.bookId || 1,
+                chapterId: pageState.id
+            });
+            setShowModalSubmission(true);
+        } catch (error) {
+            console.error('Error submitting final work:', error);
+        }
+    };
+
+    if (invalid) {
+        return (
+            <div style={{ padding: "40px", fontSize: "22px" }}>
+                טוען…
+            </div>
+        );
+    }
+
+    if (loadState === 'error') {
+        return <div className="loading">לא ניתן לטעון שאלות</div>;
+    }
+
+    if (loadState === 'ready' && questions && Object.keys(questions).length === 0) {
+        return <div className="loading">לא נמצאו שאלות לפרק זה</div>;
+    }
+
+    if (showLevelFinished) {
+        return <LevelFinshed />;
+    }
 
     // ---- IF QUESTIONS NOT LOADED ----
     if (!questions || !questions[questionId]) {
@@ -331,10 +396,9 @@ function QuestionPage({ type }) {
                 const nonExplanation = Object.values(questions).filter(
                     (q) => q.type !== "explanation"
                 );
-                const completed = Object.values(questions).filter(
-                    (q) => q.done || q.answer
+                const isFinal = nonExplanation.every(
+                    (q) => q.done === true
                 );
-                const isFinal = completed.length === nonExplanation.length;
 
                 const lastPage =
                     actualPageCount + 1 === Object.keys(questions).length;
@@ -348,7 +412,7 @@ function QuestionPage({ type }) {
                         setQuestions={setQuestions}
                         isFinal={isFinal}
                         finalQuestionInputRef={finalQuestionInputRef}
-                        submitFinalWork={() => submitFinalWork()}
+                        submitFinalWork={submitFinalWork}
                     />
                 );
             } else {

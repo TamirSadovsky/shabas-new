@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import './Explanation.css';  // Make sure to create a CSS file with the styles provided below
 import ImageComponenet from '../ImageComponenet/ImageComponent';
 import { getImageUrl } from '../../constants/importImage';
@@ -7,8 +7,8 @@ import { getImageUrl } from '../../constants/importImage';
 const Explanation = ({questionInfo, className}) => {
     
    const formatText = () =>{
-       let text = questionInfo.options ? questionInfo?.options[0]?.label : ''
-        if(questionInfo.explanation.length > 0) {
+       let text = questionInfo.options?.[0]?.label || ''
+        if(typeof questionInfo.explanation === 'string' && questionInfo.explanation.length > 0) {
             text = questionInfo.explanation;
         }
         let formattedText = text;

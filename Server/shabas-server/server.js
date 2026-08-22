@@ -4,6 +4,7 @@ const cors = require('cors');
 const path = require('path');
 const { exec } = require('child_process');
 const { spawn } = require('child_process');
+const { getPositiveInteger } = require('./requestParams');
 
 const app = express();
 const port = 3000;
@@ -86,20 +87,49 @@ app.post('/brightness', async (req, res) => {
     }
 });
 
+// ACTIVE BOOKS
+app.get('/books', async (req, res) => {
+    try {
+        const pool = await db.getPool();
+        const result = await pool.request().query(`
+            SELECT
+                [BookID] AS [id],
+                [Book] AS [name],
+                [BookImage] AS [image],
+                [AudioLink] AS [audioLink]
+            FROM [dbo].[Books]
+            WHERE ISNULL([NotActive], 0) = 0
+            ORDER BY [BookID]
+        `);
+
+        res.status(200).json({ data: result.recordset });
+    } catch (e) {
+        console.error("Error loading books:", e);
+        res.status(500).json({ error: 'Failed to load books' });
+    }
+});
+
 // ✔ FIXED: CHAPTER LIST
 app.get('/chapter_list', async (req, res) => {
     try {
+        const bookId = getPositiveInteger(req.query.bookId, 1);
+        if (bookId === null) {
+            return res.status(400).json({ error: 'bookId must be a positive integer' });
+        }
+
         const pool = await db.getPool();
 
         const data = await pool.request()
-            .input('BookID', db.sql.Int, 1)
+            .input('BookID', db.sql.Int, bookId)
             .execute('FindChapteList1');
 
         const transformedData = Object.values(data.recordset).reduce((acc, item) => {
             acc[item.ChapterID] = {
-                level: item.NumAmswerd,
+                level: item.NumAmswerd ?? 0,
                 name: item.ChapterName,
-                total: item.TotalQNum,
+                total: item.TotalQNum ?? 0,
+                image: item.ChapterImage,
+                audioLink: item.AudioLink,
                 finalExam: item.FinalExamID,
                 finalInProgress: item.FinalInProgress
             };

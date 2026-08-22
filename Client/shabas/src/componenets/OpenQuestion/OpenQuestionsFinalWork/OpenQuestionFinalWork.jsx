@@ -12,6 +12,7 @@ import FinalWorkModal from '../../FinalWorkModal/FinalWorkModal';
 const OpenQuestionFinalWork = ({pageId, questionInfo, setQuestions, questionId, isFinal, lastPage, finalQuestionInputRef, submitFinalWork}) => {
     const userState= useSelector(state => state.user)
     const [submitted, setSubmitted] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
     const [openQuestion, setOpenQuestion] = useState(questionInfo.answer ? questionInfo.answer : '')
     const maxLength = 2000
 
@@ -20,32 +21,50 @@ const OpenQuestionFinalWork = ({pageId, questionInfo, setQuestions, questionId, 
         setSubmitted(false)
         setOpenQuestion(value);
         finalQuestionInputRef.current = value
+        setQuestions(prev => ({
+            ...prev,
+            [questionId]: {
+                ...prev[questionId],
+                answer: value,
+                done: false
+            }
+        }))
     };
 
     useEffect(()=>{
-        console.log("final",isFinal)
-    })
-    
-    const handleSubmit = ()=>{
-        if(openQuestion.length === 0 ) return;
-        setQuestions(prev => ({
-            ...prev,
-            [questionId]:{
-                ...prev[questionId],
-                answer:openQuestion,
-                done:true
-            }
-        }))
+        const savedAnswer = questionInfo.answer || ''
+        setOpenQuestion(savedAnswer)
+        finalQuestionInputRef.current = savedAnswer
+        setSubmitted(Boolean(questionInfo.done || questionInfo.answer))
+    }, [questionId, questionInfo.answer, questionInfo.done, finalQuestionInputRef])
+
+    const handleSubmit = async ()=>{
+        if(openQuestion.length === 0 || isSaving) return;
         const data = {
             userId: userState.id,
             categoryId:pageId,
             questionId:questionId,
             answer:openQuestion
         }
-        // console.log(data);
-        // sendToLog(data)
-        logServiceInstance.logfinal(data)
-        setSubmitted(true);
+
+        setIsSaving(true)
+        try {
+            await logServiceInstance.saveFinal(data)
+            setQuestions(prev => ({
+                ...prev,
+                [questionId]:{
+                    ...prev[questionId],
+                    answer:openQuestion,
+                    done:true
+                }
+            }))
+            setSubmitted(true);
+        } catch (error) {
+            console.error('Error saving final-work answer:', error)
+            setSubmitted(false)
+        } finally {
+            setIsSaving(false)
+        }
     }
 
 
@@ -70,7 +89,8 @@ const OpenQuestionFinalWork = ({pageId, questionInfo, setQuestions, questionId, 
                 <div className={lastPage ? `FW-open-question-buttonsection FW-spread-buttons` : `FW-open-question-buttonsection` }>
                 <OpenQuestionSubmitIndication submitted={submitted}/>
                     <button 
-                        className={`submit-button ${openQuestion.length === 0 ? 'disabled' : ''}`} 
+                        className={`submit-button ${openQuestion.length === 0 || isSaving ? 'disabled' : ''}`}
+                        disabled={openQuestion.length === 0 || isSaving}
                         onClick={()=> handleSubmit()}
                     >
                         שמירה
