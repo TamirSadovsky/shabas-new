@@ -51,9 +51,21 @@ const LayoutwithAnimation = ({ page, children, title, audio,  totalLevel, curren
     const showFinalExamButton = isFinalExam && isFinalInProgress
 
     const handleGoBackToSubjects = ()=>{
-        
-        console.log("Page state:", levelState.regular[pageState.id])
-        dispatch({type:'PICK_CATEGORY', page:'final_work', id:levelState.regular[pageState.id].finalExam})
+        const currentChapter = levelState.regular[pageState.id]
+        const finalExamId = currentChapter.finalExam
+
+        dispatch({
+            type: 'LOAD_DATA',
+            pageType: 'finalWork',
+            data: {
+                [finalExamId]: {
+                    level: 0,
+                    name: currentChapter.name,
+                    total: 0
+                }
+            }
+        })
+        dispatch({type:'PICK_CATEGORY', page:'final_work', id:finalExamId})
         // dispatch({type:'PICK_CATEGORY', page:'category', id:pageState.id})
     }
     useEffect(()=>{

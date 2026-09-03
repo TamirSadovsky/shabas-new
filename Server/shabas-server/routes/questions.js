@@ -1,17 +1,20 @@
 const express = require('express');
 const router = express.Router();
-const axios = require('axios');
 const sql = require("../mssql");
-const email_service = require('../services/sendEmail');
 const utils = require('../utils');
-
-const bookId = 1;
+const { getPositiveInteger } = require('../requestParams');
 
 router.get('/get_questions_by_bookid/:id', async (req, res) => {
     try {
-        const chapterId = parseInt(req.params.id);
-        const bookId = 1;
-        const userId = 1;
+        const chapterId = getPositiveInteger(req.params.id);
+        const bookId = getPositiveInteger(req.query.bookId, 1);
+        const userId = getPositiveInteger(req.query.userId, 1);
+
+        if (chapterId === null || bookId === null || userId === null) {
+            return res.status(400).json({
+                error: 'chapterId, bookId, and userId must be positive integers'
+            });
+        }
 
         console.log("📌 API START get_questions_by_bookid");
         console.log("➡️ Params:", { chapterId, bookId, userId });
@@ -124,6 +127,11 @@ router.get('/get_questions_by_bookid/:id', async (req, res) => {
 
 router.get('/final_work_category', async (req, res) => {
     try {
+        const bookId = getPositiveInteger(req.query.bookId, 1);
+        if (bookId === null) {
+            return res.status(400).json({ error: 'bookId must be a positive integer' });
+        }
+
         const pool = await sql.getPool();
 
         const data = await pool.request()
@@ -141,7 +149,16 @@ router.get('/final_work_category', async (req, res) => {
 
 router.get('/final_work_questions/:id', async (req, res) => {
     try {
-        const chapterId = req.params.id;
+        const chapterId = getPositiveInteger(req.params.id);
+        const bookId = getPositiveInteger(req.query.bookId, 1);
+        const userId = getPositiveInteger(req.query.userId, 1);
+
+        if (chapterId === null || bookId === null || userId === null) {
+            return res.status(400).json({
+                error: 'chapterId, bookId, and userId must be positive integers'
+            });
+        }
+
         const pool = await sql.getPool();
 
         const data = await pool.request()
@@ -152,7 +169,7 @@ router.get('/final_work_questions/:id', async (req, res) => {
         const mapped_data = await Promise.all(
             data.recordset.map(async (question) => {
                 const teachersNote = await pool.request()
-                    .input('UserID', sql.sql.Int, 1)
+                    .input('UserID', sql.sql.Int, userId)
                     .input('CID', sql.sql.Int, question.CID)
                     .execute("TeacherCommentsList");
 
@@ -171,12 +188,16 @@ router.get('/final_work_questions/:id', async (req, res) => {
 
         const json_data = mapped_data.reduce((acc, q) => {
             acc[q.id] = {
+                id: q.id,
                 title: q.title,
                 type: q.type,
                 audio: q.audio,
                 page: q.page,
+                pageId: q.page,
                 explanation: q.explanation,
-                done: false,
+                done: typeof q.answer === 'string'
+                    ? q.answer.trim().length > 0
+                    : Boolean(q.answer),
                 answer: q.answer,
                 teachersNote: q.teachersNote
             };
@@ -192,10 +213,17 @@ router.get('/final_work_questions/:id', async (req, res) => {
 });
 
 
-router.get('/complete_final_work', async (req, res) => {
+const completeFinalWork = async (req, res) => {
     try {
-        const chapterId = req.params.chapterId;
-        const userId = req.params.userId;
+        const chapterId = getPositiveInteger(req.body?.chapterId ?? req.query.chapterId);
+        const userId = getPositiveInteger(req.body?.userId ?? req.query.userId, 1);
+        const bookId = getPositiveInteger(req.body?.bookId ?? req.query.bookId, 1);
+
+        if (chapterId === null || userId === null || bookId === null) {
+            return res.status(400).json({
+                error: 'chapterId, bookId, and userId must be positive integers'
+            });
+        }
 
         const pool = await sql.getPool();
 
@@ -211,7 +239,10 @@ router.get('/complete_final_work', async (req, res) => {
         console.log("Error occurred: ", e);
         res.status(500).send(e);
     }
-});
+};
+
+router.post('/complete_final_work', completeFinalWork);
+router.get('/complete_final_work', completeFinalWork);
 
 
 module.exports = router;

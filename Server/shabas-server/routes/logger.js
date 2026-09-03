@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { sql, getPool } = require('../mssql');
+const { getPositiveInteger } = require('../requestParams');
 
 router.post('/insert_to_log', async (req, res) => {
     try {
@@ -8,6 +9,7 @@ router.post('/insert_to_log', async (req, res) => {
 
         const {
             userId,
+            bookId: requestedBookId,
             categoryId,
             questionId,
             isQuestion,
@@ -15,7 +17,11 @@ router.post('/insert_to_log', async (req, res) => {
             answer
         } = req.body;
 
-        const bookId = 1;
+        const bookId = getPositiveInteger(requestedBookId, 1);
+        if (bookId === null) {
+            return res.status(400).json({ error: 'bookId must be a positive integer' });
+        }
+
         const pool = await getPool();               // ✔ תקין
         const request = pool.request();             // ✔ קיים
 
@@ -24,7 +30,7 @@ router.post('/insert_to_log', async (req, res) => {
             .input('FTypeID', sql.Int, 0)
             .input('CID', sql.Int, questionId)
             .input('IsQ', sql.Bit, isQuestion)
-            .input('QAnswerdRight', sql.Bit, isCorrect)
+            .input('QAnswerdRight', sql.SmallInt, isCorrect)
             .input('QDes', sql.NVarChar(sql.MAX), answer)
             .input('BookID', sql.Int, bookId)
             .input('ChapterID', sql.Int, categoryId)
@@ -46,12 +52,17 @@ router.post('/insert_to_log_final', async (req, res) => {
 
         const {
             userId,
+            bookId: requestedBookId,
             categoryId,
             questionId,
             answer
         } = req.body;
 
-        const bookId = 1;
+        const bookId = getPositiveInteger(requestedBookId, 1);
+        if (bookId === null) {
+            return res.status(400).json({ error: 'bookId must be a positive integer' });
+        }
+
         const pool = await getPool();               // ✔ תקין
         const request = pool.request();             // ✔ קיים
 

@@ -1,12 +1,16 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const fs = require('fs');
+const os = require('os');
 const path = require('path');
 const { exec } = require('child_process');
 const { spawn } = require('child_process');
+const { getPositiveInteger } = require('./requestParams');
 
 const app = express();
 const port = 3000;
+const host = '127.0.0.1';
 
 // MSSQL MODULE (FIXED)
 const db = require("./mssql");
@@ -15,6 +19,7 @@ const db = require("./mssql");
 const questionsRoute = require('./routes/questions');
 const authRouter = require('./routes/auth');
 const loggerRoute = require('./routes/logger');
+const mediaRoute = require('./routes/media');
 
 // STATIC FRONTEND (PRODUCTION)
 app.use(express.static(path.join(__dirname, 'dist')));
@@ -28,6 +33,7 @@ app.use(bodyParser.json());
 app.use('/auth', authRouter);
 app.use('/questions', questionsRoute);
 app.use('/log', loggerRoute);
+app.use('/', mediaRoute);
 
 // ---------------------------
 //       API ENDPOINTS
@@ -86,20 +92,66 @@ app.post('/brightness', async (req, res) => {
     }
 });
 
+// ACTIVE BOOKS
+app.get('/books', async (req, res) => {
+    try {
+        const pool = await db.getPool();
+        const result = await pool.request().query(`
+            SELECT
+                [BookID] AS [id],
+                [Book] AS [name],
+                CASE
+                    WHEN NULLIF(LTRIM(RTRIM([BookImage])), '') IS NULL THEN 0
+                    ELSE 1
+                END AS [hasImage],
+                CASE
+                    WHEN NULLIF(LTRIM(RTRIM([AudioLink])), '') IS NULL THEN 0
+                    ELSE 1
+                END AS [hasAudio]
+            FROM [dbo].[Books]
+            WHERE ISNULL([NotActive], 0) = 0
+            ORDER BY ISNULL([OrderID], 2147483647), [BookID]
+        `);
+
+        const books = result.recordset.map((book) => ({
+            id: book.id,
+            name: book.name,
+            image: book.hasImage
+                ? `/media/books/${book.id}/icon`
+                : null,
+            audioLink: book.hasAudio
+                ? `/media/books/${book.id}/audio`
+                : null
+        }));
+
+        res.status(200).json({ data: books });
+    } catch (e) {
+        console.error("Error loading books:", e);
+        res.status(500).json({ error: 'Failed to load books' });
+    }
+});
+
 // ✔ FIXED: CHAPTER LIST
 app.get('/chapter_list', async (req, res) => {
     try {
+        const bookId = getPositiveInteger(req.query.bookId, 1);
+        if (bookId === null) {
+            return res.status(400).json({ error: 'bookId must be a positive integer' });
+        }
+
         const pool = await db.getPool();
 
         const data = await pool.request()
-            .input('BookID', db.sql.Int, 1)
+            .input('BookID', db.sql.Int, bookId)
             .execute('FindChapteList1');
 
         const transformedData = Object.values(data.recordset).reduce((acc, item) => {
             acc[item.ChapterID] = {
-                level: item.NumAmswerd,
+                level: item.NumAmswerd ?? 0,
                 name: item.ChapterName,
-                total: item.TotalQNum,
+                total: item.TotalQNum ?? 0,
+                image: item.ChapterImage,
+                audioLink: item.AudioLink,
                 finalExam: item.FinalExamID,
                 finalInProgress: item.FinalInProgress
             };
@@ -138,18 +190,38 @@ app.get('*', (req, res) => {
 
 let CHROME_PROCESS;
 
-app.listen(process.env.PORT || port, () => {
-    console.log(`Hello world app listening on port ${port}!`);
+const getChromePath = () => {
+    const candidates = [
+        process.env.CHROME_PATH,
+        'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+        'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe'
+    ].filter(Boolean);
 
-    const chromePath = `C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe`;
+    return candidates.find((candidate) => fs.existsSync(candidate));
+};
 
-    // Launch Chrome in kiosk mode
+const launchChrome = (url, detach = false) => {
+    const chromePath = getChromePath();
+    if (!chromePath) {
+        console.error(`Chrome was not found. Open this URL manually: ${url}`);
+        return;
+    }
+
+    const profileDir = path.join(os.tmpdir(), 'shabas-chrome-profile');
     CHROME_PROCESS = spawn(chromePath, [
-        `--app=http://localhost:${port}`,
+        `--app=${url}`,
+        `--user-data-dir=${profileDir}`,
+        '--no-first-run',
+        '--no-default-browser-check',
         '--disable-infobars',
-        '--full-screen',
+        '--start-fullscreen',
         '--kiosk'
-    ]);
+    ], detach ? { detached: true, stdio: 'ignore' } : {});
+
+    if (detach) {
+        CHROME_PROCESS.unref();
+        return;
+    }
 
     CHROME_PROCESS.on('error', (err) => {
         console.error('Error launching Chrome:', err);
@@ -158,4 +230,34 @@ app.listen(process.env.PORT || port, () => {
     CHROME_PROCESS.on('exit', (code, signal) => {
         console.log(`Chrome process exited with code ${code}, signal ${signal}`);
     });
+};
+
+const keepWindowOpen = (message) => {
+    console.error(message);
+    if (!process.pkg) {
+        process.exit(1);
+        return;
+    }
+
+    console.log('Press Enter to close this window...');
+    process.stdin.resume();
+    process.stdin.once('data', () => process.exit(1));
+};
+
+const listeningPort = Number(process.env.PORT) || port;
+const appUrl = `http://${host}:${listeningPort}`;
+const server = app.listen(listeningPort, host, () => {
+    console.log(`Hello world app listening on ${appUrl}!`);
+    launchChrome(appUrl);
+});
+
+server.on('error', (error) => {
+    if (error.code === 'EADDRINUSE') {
+        console.warn(`Port ${listeningPort} is already in use. Opening the existing app...`);
+        launchChrome(appUrl, true);
+        setTimeout(() => process.exit(0), 1500);
+        return;
+    }
+
+    keepWindowOpen(`Failed to start the app: ${error.message}`);
 });

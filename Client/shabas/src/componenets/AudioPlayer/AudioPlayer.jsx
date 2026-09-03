@@ -21,8 +21,11 @@ const AudioPlayer = ({audioName, id}) => {
     }
     useEffect(() => {
         resetAudio()
-        // if(audio) return;
-        // if(!audioName){ return;}
+        if (typeof audioName !== 'string' || audioName.trim().length === 0) {
+            setAudio(null)
+            return
+        }
+
         try{
             import(`../../assets/sounds/${audioName.replace('.mp3', '')}.mp3`)
                 .then(audioModule => {

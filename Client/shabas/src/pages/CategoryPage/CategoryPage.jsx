@@ -13,9 +13,7 @@ import {
 
 import sbs_logo from '../../assets/sbs_logo.svg'
 import atid_logo from '../../assets/atid_logo.svg'
-import CategoryButton from '../../componenets/CategoryButton/CategoryButton.jsx'
 import FinalWorkButton from '../../componenets/FinalWorkButton/FinalWorkButton.jsx'
-import axios from 'axios'
 import axiosInstance from '../../constants/axios.config.js'
 import logServiceInstance from '../../logService.js'
 
@@ -25,12 +23,30 @@ function CategoryPage({triggerAnimation, setPageDirection}) {
     const pageState = useSelector(state => state.page)
     const [leftLogoClick, setLeftLogoClick] = useState(0)
     const [rightLogoClick, setRightLogoClick] = useState(0)
+    const [loadState, setLoadState] = useState('loading')
 
 
 
     const dispatch = useDispatch()
+    const categoryImages = [cata1, cata2, cata3, cata4, cata5]
+
+    const getCategoryImage = (categoryId, image) => {
+        if (typeof image === 'string' && /^(https?:|data:|blob:)/i.test(image)) {
+            return image
+        }
+
+        const numericId = Number(categoryId)
+        const imageIndex = Number.isFinite(numericId)
+            ? Math.abs(numericId - 1) % categoryImages.length
+            : 0
+        return categoryImages[imageIndex]
+    }
+
     const handleCategoryClick = (category_identifier)=>{
-        console.log(levelState[category_identifier].level, levelState[category_identifier].total )
+        const category = levelState[category_identifier]
+        if (!category) return
+
+        console.log(category.level, category.total)
         // if(levelState[category_identifier].level >= levelState[category_identifier].total) return; // Make the user unable to visit the chapter again.
         console.log("category_identifier", category_identifier)
         setPageDirection(false)
@@ -53,21 +69,31 @@ function CategoryPage({triggerAnimation, setPageDirection}) {
         dispatch({type:'PICK_CATEGORY', page:'final_work_category'})
     }
 
-    const fetchCategories = async ()=>{
+    const fetchCategories = async (bookId, signal)=>{
         try{
-            const results = await axiosInstance.get('/chapter_list')
+            setLoadState('loading')
+            dispatch({type:'LOAD_DATA', data:{}, pageType:'regular'})
+            const results = await axiosInstance.get('/chapter_list', {
+                params: { bookId },
+                signal
+            })
             console.log(results.data)
             dispatch({type:'LOAD_DATA', data:results.data.data, pageType:'regular'})
+            setLoadState('ready')
         } catch(e){
+            if (e.code === 'ERR_CANCELED') return
             console.log("Error fetching categories: ", e);
+            setLoadState('error')
         }
 
 
     }
 
     useEffect(()=>{
-        fetchCategories();
-    },[])
+        const controller = new AbortController()
+        fetchCategories(pageState.bookId || 1, controller.signal);
+        return () => controller.abort()
+    },[pageState.bookId])
 
     useEffect(()=>{
         if(leftLogoClick + rightLogoClick === 6){
@@ -81,15 +107,29 @@ function CategoryPage({triggerAnimation, setPageDirection}) {
             <img className='sbs' onClick={()=> setRightLogoClick(prev => prev + 1)} src={sbs_logo}/>
             <main className='category_wrapper'>
                 <header className='category_header'>
-                    <div className='category_title'>המשפחה</div>
+                    <div className='category_title'>{pageState.bookName || 'המשפחה'}</div>
                     <div className='category_subheader'>שלום {userState.fullName}, בחר יחידת לימוד</div>
                 </header>
                 <section className='category_selectsection'>
-                    <CategoryCard onClick={handleCategoryClick} triggerAnimation={triggerAnimation} category_identifier='5' category_name={levelState[5].name} level={levelState[5].level} total={levelState[5].total} imgsrc={cata5}/>
-                    <CategoryCard onClick={handleCategoryClick} category_identifier='4' category_name={levelState[4].name} level={levelState[4].level} total={levelState[4].total} imgsrc={cata4}/>
-                    <CategoryCard onClick={handleCategoryClick} category_identifier='3' category_name={levelState[3].name} level={levelState[3].level} total={levelState[3].total} imgsrc={cata3}/>
-                    <CategoryCard onClick={handleCategoryClick} category_identifier='2' category_name={levelState[2].name} level={levelState[2].level} total={levelState[2].total} imgsrc={cata2}/>
-                    <CategoryCard onClick={handleCategoryClick} category_identifier='1' category_name={levelState[1].name} level={levelState[1].level} total={levelState[1].total} imgsrc={cata1}/>
+                    {loadState === 'loading' && <div>טוען יחידות לימוד…</div>}
+                    {loadState === 'error' && <div>לא ניתן לטעון יחידות לימוד</div>}
+                    {loadState === 'ready' && Object.keys(levelState).length === 0 && (
+                        <div>לא נמצאו יחידות לימוד לספר זה</div>
+                    )}
+                    {Object.entries(levelState)
+                        .sort(([leftId], [rightId]) => Number(rightId) - Number(leftId))
+                        .map(([id, category]) => (
+                            <CategoryCard
+                                key={id}
+                                onClick={handleCategoryClick}
+                                triggerAnimation={triggerAnimation}
+                                category_identifier={id}
+                                category_name={category.name}
+                                level={category.level}
+                                total={category.total}
+                                imgsrc={getCategoryImage(id, category.image)}
+                            />
+                        ))}
                 </section>
             </main>
             <footer>
