@@ -1,25 +1,34 @@
-import React, { useEffect, useState, useId } from 'react';
+import { useEffect, useState, useId } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import MediaRow from '../../componenets/MediaRow/MediaRow';
 import { PowerButton } from '../../componenets/Sliders/PowerSlider/PowerSlider.jsx';
 import axiosInstance from '../../constants/axios.config.js';
+import { resolveMediaUrl } from '../../constants/mediaUrl.js';
 
 import './HomePage.css';
 import { cata1, cata4, cata5 } from '../../assets/cata_images.js';
 import sbs_logo from '../../assets/sbs_logo.svg';
 import logo_new from '../../assets/logo_new.png';
-import instructionsPdf from '../../assets/instructions.pdf';
-import audio1 from '../../assets/sounds/matched1.mp3';
-import audio2 from '../../assets/sounds/matched2.mp3';
 import chevronIcon from '../../assets/chevron-right.png';
 
-// הקובץ אינו נמצא ב-repo; יש להניח אותו ב-public/assets כדי שהנגן יעבוד
-const exampleVideo = '/assets/file_example.mp4';
 const fallbackBook = {
     id: 1,
     name: 'המשפחה',
     image: null
 };
+const emptyHomeMedia = {
+    articles: [],
+    audios: [],
+    videos: []
+};
+const batteryDemoStates = [
+    { hasBattery: true, percent: 100, isCharging: false },
+    { hasBattery: true, percent: 65, isCharging: false },
+    { hasBattery: true, percent: 35, isCharging: false },
+    { hasBattery: true, percent: 12, isCharging: false },
+    { hasBattery: true, percent: 8, isCharging: true },
+    { hasBattery: false, percent: null, isCharging: false }
+];
 
 // ==========================================
 // BATTERY COMPONENTS (Figma Design)
@@ -70,25 +79,15 @@ function BatteryButton() {
     const [stateIndex, setStateIndex] = useState(0);
     const clipId = useId?.() || 'bat-clip-fixed';
 
-    // מערך של מצבי סוללה שונים להדגמה
-    const demoStates = [
-        { hasBattery: true, percent: 100, isCharging: false }, // ירוק מלא
-        { hasBattery: true, percent: 65, isCharging: false },  // ירוק חלקי
-        { hasBattery: true, percent: 35, isCharging: false },  // כתום
-        { hasBattery: true, percent: 12, isCharging: false },  // אדום 
-        { hasBattery: true, percent: 8, isCharging: true },    // אדום + ברק טעינה
-        { hasBattery: false, percent: null, isCharging: false } // אפור - לא זמין
-    ];
-
     useEffect(() => {
         // טיימר שמעביר למצב הבא כל 3000 אלפיות שנייה (3 שניות)
         const id = setInterval(() => {
-            setStateIndex((prev) => (prev + 1) % demoStates.length);
+            setStateIndex((prev) => (prev + 1) % batteryDemoStates.length);
         }, 3000);
         return () => clearInterval(id);
     }, []);
 
-    const bat = demoStates[stateIndex];
+    const bat = batteryDemoStates[stateIndex];
     const hasBattery = bat?.hasBattery === true;
     const percent = typeof bat?.percent === 'number' ? bat.percent : 0;
     const unavailable = !hasBattery || bat?.percent == null;
@@ -139,10 +138,33 @@ const SectionHeader = ({ title, iconClass }) => (
     </div>
 );
 
+const ThumbnailImage = ({ src, fallback, alt, className }) => {
+    const [imageSource, setImageSource] = useState(src || fallback);
+
+    useEffect(() => {
+        setImageSource(src || fallback);
+    }, [src, fallback]);
+
+    if (!imageSource) return null;
+
+    return (
+        <img
+            src={imageSource}
+            alt={alt}
+            className={className}
+            onError={() => {
+                if (fallback && imageSource !== fallback) {
+                    setImageSource(fallback);
+                }
+            }}
+        />
+    );
+};
+
 // ==========================================
 // Audio Card
 // ==========================================
-const AudioCard = ({ title, audioUrl, isPlaying, onPlay, currentAudioObj }) => {
+const AudioCard = ({ title, audioUrl, iconUrl, isPlaying, onPlay, currentAudioObj }) => {
     const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
 
@@ -190,6 +212,14 @@ const AudioCard = ({ title, audioUrl, isPlaying, onPlay, currentAudioObj }) => {
     return (
         <div className={`audio-card-container ${isPlaying ? 'playing' : ''}`}>
             <div className="audio-visual-box">
+                {iconUrl && (
+                    <ThumbnailImage
+                        src={iconUrl}
+                        fallback={cata5}
+                        alt={title}
+                        className="audio-thumb-img"
+                    />
+                )}
                 <div className="audio-time-display">
                     {isPlaying ? (
                         <span>{formatTime(currentTime)} / {formatTime(duration)}</span>
@@ -221,7 +251,12 @@ const MediaCard = ({ img, label, progress, onClick }) => (
         <div className="card-top-row">
             {/* 1. צד ימין: תמונה */}
             <div className="card-thumb-container">
-                <img src={img} alt={label} className="card-thumb-img" />
+                <ThumbnailImage
+                    src={img}
+                    fallback={cata1}
+                    alt={label}
+                    className="card-thumb-img"
+                />
             </div>
 
             {/* 2. צד שמאל: אחוזים */}
@@ -244,7 +279,12 @@ const MediaCard = ({ img, label, progress, onClick }) => (
 const VideoCard = ({ img, label, onClick }) => (
     <div className="hp-video-card" onClick={onClick}>
         <div className="video-thumb-container">
-            <img src={img} alt={label} className="video-thumb-img" />
+            <ThumbnailImage
+                src={img}
+                fallback={cata4}
+                alt={label}
+                className="video-thumb-img"
+            />
         </div>
         <div className="video-footer">
             <span className="video-title-text">{label}</span>
@@ -253,11 +293,18 @@ const VideoCard = ({ img, label, onClick }) => (
 );
 
 // Article/PDF Card
-const ArticleCard = ({ title, pdfUrl, onOpenModal }) => (
+const ArticleCard = ({ title, pdfUrl, iconUrl, onOpenModal }) => (
     <div className="hp-article-card" onClick={() => pdfUrl && onOpenModal(pdfUrl)}>
         {/* אזור עליון: תצוגה מקדימה של ה-PDF */}
         <div className="article-preview-container">
-            {pdfUrl ? (
+            {iconUrl ? (
+                <ThumbnailImage
+                    src={iconUrl}
+                    fallback={cata1}
+                    alt={title}
+                    className="article-icon-img"
+                />
+            ) : pdfUrl ? (
                 <div className="pdf-preview-wrapper">
                     <iframe
                         src={`${pdfUrl}#page=1&toolbar=0&navpanes=0&scrollbar=0&view=FitH`}
@@ -283,6 +330,8 @@ function HomePage({ setPageDirection }) {
     const userState = useSelector(state => state.user);
     const dispatch = useDispatch();
     const [books, setBooks] = useState(null);
+    const [homeMedia, setHomeMedia] = useState(emptyHomeMedia);
+    const [mediaLoadState, setMediaLoadState] = useState('loading');
 
     // Audio States
     const [currentAudio, setCurrentAudio] = useState(null);
@@ -293,16 +342,6 @@ function HomePage({ setPageDirection }) {
 
     // Modal Video State
     const [activeVideoUrl, setActiveVideoUrl] = useState(null);
-
-    const videoData = [
-        { id: '4', label: 'יללוסטון.mp4', img: cata4 },
-        { id: '5', label: 'המתנקשת.mp4', img: cata5 }
-    ];
-
-    const audioData = [
-        { title: "שמע 1.mp3", url: audio1 },
-        { title: "שמע 2.mp3", url: audio2 }
-    ];
 
     const handleBookClick = (book) => {
         setPageDirection(false);
@@ -341,47 +380,97 @@ function HomePage({ setPageDirection }) {
         };
     }, []);
 
-    const resolveBookImage = (image) => {
-        if (typeof image === 'string' && /^(https?:|data:|blob:)/i.test(image)) {
-            return image;
-        }
-        return cata1;
-    };
+    useEffect(() => {
+        const controller = new AbortController();
+
+        const fetchHomeMedia = async () => {
+            setMediaLoadState('loading');
+            try {
+                const results = await axiosInstance.get('/home_media', {
+                    signal: controller.signal
+                });
+                const loadedMedia = results.data?.data;
+
+                setHomeMedia({
+                    articles: Array.isArray(loadedMedia?.articles)
+                        ? loadedMedia.articles
+                        : [],
+                    audios: Array.isArray(loadedMedia?.audios)
+                        ? loadedMedia.audios
+                        : [],
+                    videos: Array.isArray(loadedMedia?.videos)
+                        ? loadedMedia.videos
+                        : []
+                });
+                setMediaLoadState('ready');
+            } catch (error) {
+                if (error.code === 'ERR_CANCELED') return;
+                console.error('Error loading home media:', error);
+                setHomeMedia(emptyHomeMedia);
+                setMediaLoadState('error');
+            }
+        };
+
+        fetchHomeMedia();
+        return () => controller.abort();
+    }, []);
+
+    useEffect(() => () => {
+        if (currentAudio) currentAudio.pause();
+    }, [currentAudio]);
 
     const handlePlayAudio = (url) => {
+        if (!url) return;
+
         if (playingUrl === url) {
-            currentAudio.pause(); setCurrentAudio(null); setPlayingUrl(null);
+            currentAudio?.pause(); setCurrentAudio(null); setPlayingUrl(null);
             return;
         }
         if (currentAudio) currentAudio.pause();
 
         const audio = new Audio(url);
         const savedPos = localStorage.getItem(`audio_pos_${url}`);
+        let playbackStarted = false;
 
-        audio.onloadedmetadata = () => {
+        const clearFailedAudio = () => {
+            setCurrentAudio(activeAudio => (
+                activeAudio === audio ? null : activeAudio
+            ));
+            setPlayingUrl(activeUrl => (
+                activeUrl === url ? null : activeUrl
+            ));
+        };
+
+        const startPlayback = () => {
+            if (playbackStarted) return;
+            playbackStarted = true;
+
             if (savedPos && parseFloat(savedPos) < audio.duration - 0.5) {
                 audio.currentTime = parseFloat(savedPos);
             } else {
                 audio.currentTime = 0;
                 localStorage.setItem(`audio_pos_${url}`, 0);
             }
-            audio.play();
+            audio.play().catch(clearFailedAudio);
         };
 
+        audio.onloadedmetadata = startPlayback;
+        audio.onerror = clearFailedAudio;
+
         if (audio.readyState >= 1) {
-            if (savedPos && parseFloat(savedPos) < audio.duration - 0.5) {
-                audio.currentTime = parseFloat(savedPos);
-            } else {
-                audio.currentTime = 0;
-            }
-            audio.play();
+            startPlayback();
         }
 
         setCurrentAudio(audio);
         setPlayingUrl(url);
 
         audio.onended = () => {
-            setPlayingUrl(null);
+            setCurrentAudio(activeAudio => (
+                activeAudio === audio ? null : activeAudio
+            ));
+            setPlayingUrl(activeUrl => (
+                activeUrl === url ? null : activeUrl
+            ));
             localStorage.setItem(`audio_pos_${url}`, 0);
         };
     };
@@ -428,7 +517,7 @@ function HomePage({ setPageDirection }) {
                             {books.map(book => (
                                 <MediaCard
                                     key={book.id}
-                                    img={resolveBookImage(book.image)}
+                                    img={resolveMediaUrl(book.image)}
                                     label={book.name}
                                     onClick={() => handleBookClick(book)}
                                 />
@@ -439,44 +528,87 @@ function HomePage({ setPageDirection }) {
 
                 <div className="section-container">
                     <SectionHeader title="קריאה" iconClass="icon-book" />
-                    <MediaRow>
-                        <ArticleCard title="מאמר 1" pdfUrl={instructionsPdf} onOpenModal={handleOpenPdf} />
-                        <ArticleCard title="מאמר 2" pdfUrl={instructionsPdf} onOpenModal={handleOpenPdf} />
-                        <ArticleCard title="מאמר 2" pdfUrl={instructionsPdf} onOpenModal={handleOpenPdf} />
-                        <ArticleCard title="מאמר 2" pdfUrl={instructionsPdf} onOpenModal={handleOpenPdf} />
-                        <ArticleCard title="מאמר 2" pdfUrl={instructionsPdf} onOpenModal={handleOpenPdf} />
-                        <ArticleCard title="מאמר 2" pdfUrl={instructionsPdf} onOpenModal={handleOpenPdf} />
-                        <ArticleCard title="מאמר 2" pdfUrl={instructionsPdf} onOpenModal={handleOpenPdf} />
-                        <ArticleCard title="מאמר 2" pdfUrl={instructionsPdf} onOpenModal={handleOpenPdf} />
-                        <ArticleCard title="מאמר 2" pdfUrl={instructionsPdf} onOpenModal={handleOpenPdf} />
-                        <ArticleCard title="מאמר 2" pdfUrl={instructionsPdf} onOpenModal={handleOpenPdf} />
-
-
-                    </MediaRow>
+                    {mediaLoadState === 'loading' && (
+                        <div className="media-state-message">טוען מאמרים…</div>
+                    )}
+                    {mediaLoadState === 'error' && (
+                        <div className="media-state-message">לא ניתן לטעון מאמרים</div>
+                    )}
+                    {mediaLoadState === 'ready' && homeMedia.articles.length === 0 && (
+                        <div className="media-state-message">אין מאמרים זמינים</div>
+                    )}
+                    {mediaLoadState === 'ready' && homeMedia.articles.length > 0 && (
+                        <MediaRow>
+                            {homeMedia.articles.map(article => (
+                                <ArticleCard
+                                    key={article.id}
+                                    title={article.name}
+                                    pdfUrl={resolveMediaUrl(article.contentUrl)}
+                                    iconUrl={resolveMediaUrl(article.iconUrl)}
+                                    onOpenModal={handleOpenPdf}
+                                />
+                            ))}
+                        </MediaRow>
+                    )}
                 </div>
 
                 <div className="section-container">
                     <SectionHeader title="צפייה" iconClass="icon-video" />
-                    <MediaRow>
-                        <VideoCard img={cata4} label="סרטון 1.mp4" onClick={() => handleOpenVideo(exampleVideo)} />
-                        {videoData.map(v => (
-                            <VideoCard key={v.id} img={v.img} label={v.label} onClick={() => handleOpenVideo(exampleVideo)} />
-                        ))}
-                    </MediaRow>
+                    {mediaLoadState === 'loading' && (
+                        <div className="media-state-message">טוען סרטונים…</div>
+                    )}
+                    {mediaLoadState === 'error' && (
+                        <div className="media-state-message">לא ניתן לטעון סרטונים</div>
+                    )}
+                    {mediaLoadState === 'ready' && homeMedia.videos.length === 0 && (
+                        <div className="media-state-message">אין סרטונים זמינים</div>
+                    )}
+                    {mediaLoadState === 'ready' && homeMedia.videos.length > 0 && (
+                        <MediaRow>
+                            {homeMedia.videos.map(video => {
+                                const videoUrl = resolveMediaUrl(video.contentUrl);
+                                return (
+                                    <VideoCard
+                                        key={video.id}
+                                        img={resolveMediaUrl(video.iconUrl)}
+                                        label={video.name}
+                                        onClick={() => videoUrl && handleOpenVideo(videoUrl)}
+                                    />
+                                );
+                            })}
+                        </MediaRow>
+                    )}
                 </div>
 
                 <div className="section-container">
                     <SectionHeader title="האזנה" iconClass="icon-music" />
-                    <MediaRow>
-                        {audioData.map((audio, index) => (
-                            <AudioCard
-                                key={index} title={audio.title} audioUrl={audio.url}
-                                isPlaying={playingUrl === audio.url}
-                                onPlay={() => handlePlayAudio(audio.url)}
-                                currentAudioObj={playingUrl === audio.url ? currentAudio : null}
-                            />
-                        ))}
-                    </MediaRow>
+                    {mediaLoadState === 'loading' && (
+                        <div className="media-state-message">טוען קטעי שמע…</div>
+                    )}
+                    {mediaLoadState === 'error' && (
+                        <div className="media-state-message">לא ניתן לטעון קטעי שמע</div>
+                    )}
+                    {mediaLoadState === 'ready' && homeMedia.audios.length === 0 && (
+                        <div className="media-state-message">אין קטעי שמע זמינים</div>
+                    )}
+                    {mediaLoadState === 'ready' && homeMedia.audios.length > 0 && (
+                        <MediaRow>
+                            {homeMedia.audios.map(audio => {
+                                const audioUrl = resolveMediaUrl(audio.contentUrl);
+                                return (
+                                    <AudioCard
+                                        key={audio.id}
+                                        title={audio.name}
+                                        audioUrl={audioUrl}
+                                        iconUrl={resolveMediaUrl(audio.iconUrl)}
+                                        isPlaying={playingUrl === audioUrl}
+                                        onPlay={() => handlePlayAudio(audioUrl)}
+                                        currentAudioObj={playingUrl === audioUrl ? currentAudio : null}
+                                    />
+                                );
+                            })}
+                        </MediaRow>
+                    )}
                 </div>
             </main>
 

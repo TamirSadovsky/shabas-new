@@ -24,13 +24,18 @@
   "scripts": {
     "start": "dotenv -e develop.env -- nodemon server.js",
     "dev": "dotenv -e develop.env -- nodemon server.js",
+    "test:media": "node --test media.test.js",
     "build:dev": "dotenv -e develop.env pkg .",
     "build:prod": "dotenv -e prod.env pkg ."
   },
   "pkg": {
     "assets": [
       "dist/**/*",
-      "public/**/*"
+      "public/**/*",
+      "prod.env",
+      "develop.env",
+      "local.env",
+      "packaged-env"
     ],
     "targets": [
       "node18-win-x64"

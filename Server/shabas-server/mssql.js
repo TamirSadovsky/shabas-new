@@ -1,5 +1,30 @@
+const fs = require("fs");
+const path = require("path");
 const sql = require("mssql");
-require("dotenv").config();
+
+function resolveEnvFile() {
+    if (!process.pkg) {
+        return undefined;
+    }
+
+    let envName = "prod.env";
+    try {
+        const configuredName = fs.readFileSync(
+            path.join(__dirname, "packaged-env"),
+            "utf8"
+        ).trim();
+        if (configuredName) {
+            envName = configuredName;
+        }
+    } catch {
+        // Keep the default packaged environment file.
+    }
+
+    return path.join(__dirname, envName);
+}
+
+const envFile = resolveEnvFile();
+require("dotenv").config(envFile ? { path: envFile } : undefined);
 
 const config = {
     user: process.env.DB_USERNAME,
