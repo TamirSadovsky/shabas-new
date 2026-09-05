@@ -21,7 +21,6 @@ function CategoryPage({triggerAnimation, setPageDirection}) {
     const userState = useSelector(state => state.user)
     const levelState = useSelector(state => state.level['regular'])
     const pageState = useSelector(state => state.page)
-    const [leftLogoClick, setLeftLogoClick] = useState(0)
     const [rightLogoClick, setRightLogoClick] = useState(0)
     const [loadState, setLoadState] = useState('loading')
 
@@ -95,16 +94,34 @@ function CategoryPage({triggerAnimation, setPageDirection}) {
         return () => controller.abort()
     },[pageState.bookId])
 
+    useEffect(() => {
+        const resetExitClicks = (event) => {
+            if (event.target.closest('[data-sbs-exit-logo]')) {
+                return
+            }
+            setRightLogoClick(0)
+        }
+
+        document.addEventListener('click', resetExitClicks, true)
+        return () => document.removeEventListener('click', resetExitClicks, true)
+    }, [])
+
     useEffect(()=>{
-        if(leftLogoClick + rightLogoClick === 6){
+        if(rightLogoClick === 6){
+            setRightLogoClick(0)
             axiosInstance.post('/kill_server')
         }
-    },[leftLogoClick, rightLogoClick])
+    },[rightLogoClick])
 
     return (
         <>  
-            <img className='atid' onClick={()=> setLeftLogoClick(prev => prev + 1)} src={atid_logo}/>
-            <img className='sbs' onClick={()=> setRightLogoClick(prev => prev + 1)} src={sbs_logo}/>
+            <img className='atid' src={atid_logo}/>
+            <img
+                className='sbs'
+                data-sbs-exit-logo="true"
+                onClick={()=> setRightLogoClick(prev => prev + 1)}
+                src={sbs_logo}
+            />
             <main className='category_wrapper'>
                 <header className='category_header'>
                     <div className='category_title'>{pageState.bookName || 'המשפחה'}</div>

@@ -20,6 +20,18 @@
      justify-content: space-between;
 }
 
+.explanation-wrapper.explanation-image-only{
+     justify-content: center;
+}
+
+.explanation-wrapper.explanation-image-only .single-choice_image_section img{
+     width: min(860px, 100%) !important;
+     height: auto !important;
+     max-height: 520px;
+     padding: 0 !important;
+     object-fit: contain;
+}
+
 .final-work-explanation{
     background-color: rgba(172,240,244, 0.6) !important;
     padding: 8px 30px 8px 30px;
