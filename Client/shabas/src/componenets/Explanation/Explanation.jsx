@@ -1,10 +1,17 @@
 import React from 'react';
+import { useSelector } from 'react-redux';
 import './Explanation.css';  // Make sure to create a CSS file with the styles provided below
 import ImageComponenet from '../ImageComponenet/ImageComponent';
 import { getImageUrl } from '../../constants/importImage';
 
+const visibleExplanationText = (html) =>
+    String(html || '')
+        .replace(/<[^>]+>/g, '')
+        .replace(/&nbsp;/gi, ' ')
+        .trim();
 
 const Explanation = ({questionInfo, className}) => {
+    const bookId = useSelector((state) => state.page.bookId);
     
    const formatText = () =>{
        let text = questionInfo.options?.[0]?.label || ''
@@ -22,14 +29,16 @@ const Explanation = ({questionInfo, className}) => {
    }
 
    const img = getImageUrl(questionInfo.img)
+   const enlargeImage = Boolean(img) && !visibleExplanationText(formatText()) && Number(bookId) > 1
     return (
-        <div className='explanation-wrapper'>
+        <div className={enlargeImage ? 'explanation-wrapper explanation-image-only' : 'explanation-wrapper'}>
             <ImageComponenet
-                width={"220px"}
-                height={"220px"}
-                padding={'30px'}
+                width={enlargeImage ? "860px" : "220px"}
+                height={enlargeImage ? "auto" : "220px"}
+                padding={enlargeImage ? "0" : "30px"}
                 src={img}
             />
+            {!enlargeImage && (
             <div className={'explanation-section'} style={{width: !img ? '100%' : ''}}>
                 <div className={className ? className : ''}>
                     {/* <div className='explanation-title'>
@@ -40,6 +49,7 @@ const Explanation = ({questionInfo, className}) => {
                     </div>
                 </div>
             </div>
+            )}
         </div>    
     );
 };

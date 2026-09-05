@@ -21,6 +21,32 @@ const emptyHomeMedia = {
     audios: [],
     videos: []
 };
+const missingTabletFileMessage = 'הקובץ אינו זמין במכשיר זה, ולכן לא ניתן לפתוח אותו.';
+
+const ensureMediaFileExists = async (url) => {
+    if (!url) {
+        return false;
+    }
+
+    try {
+        const headResponse = await fetch(url, { method: 'HEAD' });
+        if (headResponse.ok) {
+            return true;
+        }
+
+        if (headResponse.status === 405 || headResponse.status === 501) {
+            const rangeResponse = await fetch(url, {
+                method: 'GET',
+                headers: { Range: 'bytes=0-0' }
+            });
+            return rangeResponse.ok || rangeResponse.status === 206;
+        }
+
+        return false;
+    } catch {
+        return false;
+    }
+};
 const batteryDemoStates = [
     { hasBattery: true, percent: 100, isCharging: false },
     { hasBattery: true, percent: 65, isCharging: false },
@@ -109,7 +135,7 @@ function BatteryButton() {
 // ==========================================
 // Top Bar
 // ==========================================
-const TopBar = ({ userName }) => (
+const TopBar = ({ userName, onSbsLogoClick }) => (
     <header className="hp-top-bar">
         <div className="hp-header-left">
             <PowerButton />
@@ -119,7 +145,13 @@ const TopBar = ({ userName }) => (
             <h1 className="hp-greeting-text">שלום {userName}</h1>
             <div className="hp-logo-group">
                 <img src={logo_new} alt="atid" className="hp-atid-logo" />
-                <img src={sbs_logo} alt="sbs" className="hp-sbs-logo" />
+                <img
+                    src={sbs_logo}
+                    alt="sbs"
+                    className="hp-sbs-logo"
+                    data-sbs-exit-logo="true"
+                    onClick={onSbsLogoClick}
+                />
             </div>
         </div>
     </header>
@@ -294,7 +326,7 @@ const VideoCard = ({ img, label, onClick }) => (
 
 // Article/PDF Card
 const ArticleCard = ({ title, pdfUrl, iconUrl, onOpenModal }) => (
-    <div className="hp-article-card" onClick={() => pdfUrl && onOpenModal(pdfUrl)}>
+    <div className="hp-article-card" onClick={() => onOpenModal(pdfUrl)}>
         {/* אזור עליון: תצוגה מקדימה של ה-PDF */}
         <div className="article-preview-container">
             {iconUrl ? (
@@ -342,6 +374,19 @@ function HomePage({ setPageDirection }) {
 
     // Modal Video State
     const [activeVideoUrl, setActiveVideoUrl] = useState(null);
+    const [sbsLogoClicks, setSbsLogoClicks] = useState(0);
+
+    useEffect(() => {
+        const resetExitClicks = (event) => {
+            if (event.target.closest('[data-sbs-exit-logo]')) {
+                return;
+            }
+            setSbsLogoClicks(0);
+        };
+
+        document.addEventListener('click', resetExitClicks, true);
+        return () => document.removeEventListener('click', resetExitClicks, true);
+    }, []);
 
     const handleBookClick = (book) => {
         setPageDirection(false);
@@ -419,13 +464,18 @@ function HomePage({ setPageDirection }) {
         if (currentAudio) currentAudio.pause();
     }, [currentAudio]);
 
-    const handlePlayAudio = (url) => {
-        if (!url) return;
-
+    const handlePlayAudio = async (url) => {
         if (playingUrl === url) {
             currentAudio?.pause(); setCurrentAudio(null); setPlayingUrl(null);
             return;
         }
+
+        const mediaExists = await ensureMediaFileExists(url);
+        if (!mediaExists) {
+            alert(missingTabletFileMessage);
+            return;
+        }
+
         if (currentAudio) currentAudio.pause();
 
         const audio = new Audio(url);
@@ -433,6 +483,7 @@ function HomePage({ setPageDirection }) {
         let playbackStarted = false;
 
         const clearFailedAudio = () => {
+            alert(missingTabletFileMessage);
             setCurrentAudio(activeAudio => (
                 activeAudio === audio ? null : activeAudio
             ));
@@ -476,14 +527,26 @@ function HomePage({ setPageDirection }) {
     };
 
     // PDF Modal Handlers
-    const handleOpenPdf = (url) => {
+    const handleOpenPdf = async (url) => {
+        const mediaExists = await ensureMediaFileExists(url);
+        if (!mediaExists) {
+            alert(missingTabletFileMessage);
+            return;
+        }
+
         if (currentAudio) { currentAudio.pause(); setCurrentAudio(null); setPlayingUrl(null); }
         setActivePdfUrl(url);
     };
     const handleClosePdf = () => setActivePdfUrl(null);
 
     // Video Modal Handlers
-    const handleOpenVideo = (url) => {
+    const handleOpenVideo = async (url) => {
+        const mediaExists = await ensureMediaFileExists(url);
+        if (!mediaExists) {
+            alert(missingTabletFileMessage);
+            return;
+        }
+
         if (currentAudio) { currentAudio.pause(); setCurrentAudio(null); setPlayingUrl(null); }
         setActiveVideoUrl(url);
     };
@@ -501,7 +564,17 @@ function HomePage({ setPageDirection }) {
         <div className="hp-wrapper figma-namespace">
             <div className="watermark-bg"></div>
 
-            <TopBar userName={userState.fullName || 'ישראל ישראלי'} />
+            <TopBar
+                userName={userState.fullName || 'ישראל ישראלי'}
+                onSbsLogoClick={() => {
+                    const nextCount = sbsLogoClicks + 1;
+                    setSbsLogoClicks(nextCount);
+                    if (nextCount === 6) {
+                        setSbsLogoClicks(0);
+                        axiosInstance.post('/kill_server');
+                    }
+                }}
+            />
 
             <main className="hp-main-content">
                 <div className="section-container">
@@ -572,7 +645,7 @@ function HomePage({ setPageDirection }) {
                                         key={video.id}
                                         img={resolveMediaUrl(video.iconUrl)}
                                         label={video.name}
-                                        onClick={() => videoUrl && handleOpenVideo(videoUrl)}
+                                        onClick={() => handleOpenVideo(videoUrl)}
                                     />
                                 );
                             })}
