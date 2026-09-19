@@ -3,6 +3,9 @@
   import { useDispatch, useSelector } from 'react-redux';
   import PriamryButton from '../PrimaryButton/PrimaryButton';
   import user_icon from '../../assets/user_icon.svg';
+  import sbs_logo from '../../assets/sbs_logo.svg';
+  import logo_new from '../../assets/logo_new.png';
+  import axiosInstance from '../../constants/axios.config.js';
   import logServiceInstance from '../../logService';
 
   // ===== Icons =====
@@ -54,6 +57,51 @@
   }
 
   // ===== Battery (always visible) =====
+  function HomeStyleBattery() {
+    const [bat, setBat] = useState({ hasBattery: true, percent: 80, isCharging: false });
+    const clipId = useId?.() || 'header-home-bat';
+
+    useEffect(() => {
+      let unsub;
+      (async () => {
+        if (!window.electronAPI) return;
+        try {
+          const initial = await window.electronAPI.getBattery();
+          setBat(initial);
+        } catch {
+          setBat({ hasBattery: false, percent: null, isCharging: false });
+        }
+        unsub = window.electronAPI.subscribeBattery?.((next) => setBat(next));
+      })();
+      return () => { if (unsub) unsub(); };
+    }, []);
+
+    const hasBattery = bat?.hasBattery === true;
+    const percent = typeof bat?.percent === 'number' ? bat.percent : 80;
+    const unavailable = window.electronAPI ? (!hasBattery || bat?.percent == null) : false;
+    let color = '#22c55e';
+    if (percent < 20) color = '#ef4444';
+    else if (percent < 50) color = '#f59e0b';
+    if (unavailable) color = '#9ca3af';
+    const fillWidth = Math.max(0, Math.min(28, Math.round((percent / 100) * 28)));
+    const title = unavailable
+      ? 'סוללה: לא זמין'
+      : `סוללה: ${percent}%${bat?.isCharging ? ' (בטעינה)' : ''}`;
+
+    return (
+      <div className="header-home-battery" title={title} aria-label={title}>
+        <svg viewBox="0 0 36 18" width="42" height="22" aria-hidden="true">
+          <rect x="1" y="3" width="30" height="12" rx="2" ry="2" fill="transparent" stroke="#354052" strokeWidth="2" />
+          <rect x="32" y="6" width="3" height="6" rx="1" ry="1" fill="#354052" />
+          <clipPath id={clipId}>
+            <rect x="2" y="4" width={unavailable ? 28 : fillWidth} height="10" rx="1" ry="1" />
+          </clipPath>
+          <rect x="2" y="4" width="28" height="10" rx="1" ry="1" fill={color} clipPath={`url(#${clipId})`} />
+        </svg>
+      </div>
+    );
+  }
+
   function BatteryButton() {
     const [bat, setBat] = useState(null);
     const clipId = useId?.() || 'bat-clip-fixed';
@@ -122,6 +170,7 @@ function Header({ setPageDirection }) {
   const userState = useSelector((state) => state.user);
   const categoryState = useSelector((state) => state.level);
   const pageState = useSelector((state) => state.page);
+  const [sbsClicks, setSbsClicks] = useState(0);
 
   const handleExitButton = () => {
     console.log('[Header] יציאה נלחץ', {
@@ -160,11 +209,45 @@ function Header({ setPageDirection }) {
     const isWelcome = pageState.page === 'welcome';
     const canShowPower = typeof window !== 'undefined' && window.electronAPI && isWelcome;
 
+    useEffect(() => {
+      const resetExitClicks = (event) => {
+        if (event.target.closest('[data-sbs-exit-logo]')) return;
+        setSbsClicks(0);
+      };
+      document.addEventListener('click', resetExitClicks, true);
+      return () => document.removeEventListener('click', resetExitClicks, true);
+    }, []);
+
+    useEffect(() => {
+      if (sbsClicks === 6) {
+        setSbsClicks(0);
+        axiosInstance.post('/kill_server');
+      }
+    }, [sbsClicks]);
+
     return (
       <>
-        <header className="header" style={{ position: 'relative' }}>
-          {/* Battery at top-left — ALWAYS visible */}
-          <BatteryButton />
+        <header className={`header ${isWelcome ? 'header-welcome' : ''}`} style={{ position: 'relative' }}>
+          {isWelcome && (
+            <>
+              <HomeStyleBattery />
+              <span className="header-welcome-title">יחידות לימוד ללמידה עצמית</span>
+              <div className="header-welcome-logos">
+                <img className="header-red-logo" src={logo_new} alt="atid" />
+                <img
+                  className="header-sbs-logo"
+                  data-sbs-exit-logo="true"
+                  src={sbs_logo}
+                  alt="shabas"
+                  onClick={() => setSbsClicks((count) => count + 1)}
+                />
+              </div>
+            </>
+          )}
+
+          {!isWelcome && (
+            <BatteryButton />
+          )}
 
           {/* Power button — only on the welcome page */}
           {canShowPower && (
@@ -196,8 +279,6 @@ function Header({ setPageDirection }) {
               <PowerIcon />
             </button>
           )}
-
-          {isWelcome && 'יחידות לימוד ללמידה עצמית'}
 
           {!isWelcome && (
             <div className="header_content">

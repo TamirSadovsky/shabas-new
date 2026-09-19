@@ -4,7 +4,6 @@
     flex-wrap: wrap;
     justify-content: center;
     gap: 20px;
-    
 }
 
 .category_wrapper{
@@ -22,7 +21,6 @@
 .category_title{
     font-size: 44px;
     font-weight: 700;
-    /* padding: unset !important; */
 }
 
 .category_subheader{
@@ -31,17 +29,3 @@
     font-weight: 700;
     padding-top:25px;
 }
-
-.atid{
-    position: absolute;
-    left: 2%;
-    top:3%;
-}   
-
-.sbs{
-    position: absolute;
-    right: 2%;
-    top:3%;
-
-}
-
