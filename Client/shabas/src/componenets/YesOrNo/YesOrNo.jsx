@@ -7,7 +7,7 @@ import arrow from '../../assets/arrow.svg';
 import SubmitButton from '../SubmitButton/SubmitButton';
 import ImageComponenet from '../ImageComponenet/ImageComponent';
 import { getImageUrl } from '../../constants/importImage';
-import { sendToLog } from '../../constants/utils';
+import { sendToLog, shouldHideInstructionTitle } from '../../constants/utils';
 import { useSelector } from 'react-redux';
 import logServiceInstance from '../../logService';
 import useQuestionEffect from '../../hooks/useQuestionEffect';
@@ -100,7 +100,9 @@ const YesNoQuestionForm = ({pageId, nextLevel, completeLevel, questionInfo, setQ
                 src={img}
             />   
             <div className="yesno-radio-buttons-wrapper">
-                <div className='yesno-radio-buttons-title'>סמן נכון או לא נכון</div>
+                {!shouldHideInstructionTitle(questionInfo) && (
+                    <div className='yesno-radio-buttons-title'>סמן נכון או לא נכון</div>
+                )}
                 {questionInfo.options.map(question => (
                     <div className='yesno_row' key={question.id}>
                         <AudioPlayer

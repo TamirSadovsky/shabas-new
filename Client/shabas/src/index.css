@@ -40,9 +40,7 @@ body {
     min-width: 320px;
     /* min-height: 100vh; */
     min-height: 100%;
-    background-image: url('../src/assets/clouds_banner.png') ;
-    background-image: 
-    url('../src/assets/clouds_banner.png'),
+    background-image: var(--reader-banner, url('../src/assets/clouds_banner.png')),
     linear-gradient(#8AB5D8 0%, #8AB5D8 50%, #EDF7FE 50%, #EDF7FE 100%);
     background-position: center 25%;
     background-size: contain;

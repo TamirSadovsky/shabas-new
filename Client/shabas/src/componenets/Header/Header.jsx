@@ -57,33 +57,52 @@
   }
 
   // ===== Battery (always visible) =====
+  const batteryDemoStates = [
+    { hasBattery: true, percent: 100, isCharging: false },
+    { hasBattery: true, percent: 65, isCharging: false },
+    { hasBattery: true, percent: 35, isCharging: false },
+    { hasBattery: true, percent: 12, isCharging: false },
+    { hasBattery: true, percent: 8, isCharging: true },
+    { hasBattery: false, percent: null, isCharging: false }
+  ];
+
   function HomeStyleBattery() {
-    const [bat, setBat] = useState({ hasBattery: true, percent: 80, isCharging: false });
+    const [demoIndex, setDemoIndex] = useState(0);
+    const [liveBat, setLiveBat] = useState(null);
     const clipId = useId?.() || 'header-home-bat';
+    const hasElectron = typeof window !== 'undefined' && !!window.electronAPI;
 
     useEffect(() => {
-      let unsub;
-      (async () => {
-        if (!window.electronAPI) return;
-        try {
-          const initial = await window.electronAPI.getBattery();
-          setBat(initial);
-        } catch {
-          setBat({ hasBattery: false, percent: null, isCharging: false });
-        }
-        unsub = window.electronAPI.subscribeBattery?.((next) => setBat(next));
-      })();
-      return () => { if (unsub) unsub(); };
-    }, []);
+      if (hasElectron) {
+        let unsub;
+        (async () => {
+          try {
+            const initial = await window.electronAPI.getBattery();
+            setLiveBat(initial);
+          } catch {
+            setLiveBat({ hasBattery: false, percent: null, isCharging: false });
+          }
+          unsub = window.electronAPI.subscribeBattery?.((next) => setLiveBat(next));
+        })();
+        return () => { if (unsub) unsub(); };
+      }
 
+      const id = setInterval(() => {
+        setDemoIndex((prev) => (prev + 1) % batteryDemoStates.length);
+      }, 3000);
+      return () => clearInterval(id);
+    }, [hasElectron]);
+
+    const bat = hasElectron ? liveBat : batteryDemoStates[demoIndex];
     const hasBattery = bat?.hasBattery === true;
-    const percent = typeof bat?.percent === 'number' ? bat.percent : 80;
-    const unavailable = window.electronAPI ? (!hasBattery || bat?.percent == null) : false;
+    const percent = typeof bat?.percent === 'number' ? bat.percent : 0;
+    const unavailable = !hasBattery || bat?.percent == null;
     let color = '#22c55e';
     if (percent < 20) color = '#ef4444';
     else if (percent < 50) color = '#f59e0b';
     if (unavailable) color = '#9ca3af';
     const fillWidth = Math.max(0, Math.min(28, Math.round((percent / 100) * 28)));
+    const label = unavailable ? '־' : `${Math.round(percent)}%`;
     const title = unavailable
       ? 'סוללה: לא זמין'
       : `סוללה: ${percent}%${bat?.isCharging ? ' (בטעינה)' : ''}`;
@@ -97,7 +116,11 @@
             <rect x="2" y="4" width={unavailable ? 28 : fillWidth} height="10" rx="1" ry="1" />
           </clipPath>
           <rect x="2" y="4" width="28" height="10" rx="1" ry="1" fill={color} clipPath={`url(#${clipId})`} />
+          {!unavailable && bat?.isCharging && (
+            <path d="M15 5 l-3 5 h3 l-1 5 l4-7 h-3 l2-3 z" fill="#fff" opacity="0.9" />
+          )}
         </svg>
+        <span className="header-battery-percent">{label}</span>
       </div>
     );
   }
@@ -245,11 +268,6 @@ function Header({ setPageDirection }) {
             </>
           )}
 
-          {!isWelcome && (
-            <BatteryButton />
-          )}
-
-          {/* Power button — only on the welcome page */}
           {canShowPower && (
             <button
               onClick={onPowerClick}
@@ -282,7 +300,9 @@ function Header({ setPageDirection }) {
 
           {!isWelcome && (
             <div className="header_content">
-              <PriamryButton
+              <div className="header_left_cluster">
+                <HomeStyleBattery />
+                <PriamryButton
                 text="יציאה"
                 width="81px"
                 height="48px"
@@ -290,8 +310,8 @@ function Header({ setPageDirection }) {
                 textColor="#3072AF"
                 fontSize="20px"
                 onClick={handleExitButton}
-                wrapperStyle={{ transform: 'translateX(40px)' }} // הזזה עדינה ימינה
               />
+              </div>
 
               {pageState.page !== 'final_work' &&
                 categoryState['regular'] &&

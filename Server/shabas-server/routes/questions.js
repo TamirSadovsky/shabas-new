@@ -92,6 +92,7 @@ router.get('/get_questions_by_bookid/:id', async (req, res) => {
                 type: utils.getQuestionType(q.QTypeID),
                 explanation: q.Explanation,
                 img: q.PicName,
+                bgType: q.BgType,
                 pageId: q.PageID,
                 done: q.QAnswerdRight,
                 userAnswer: latestAnswer ? latestAnswer.Answer : "",
@@ -180,6 +181,7 @@ router.get('/final_work_questions/:id', async (req, res) => {
                     page: question.PageID,
                     explanation: question.Explanation,
                     type: utils.getQuestionType(question.QTypeID),
+                    bgType: question.BgType,
                     answer: question.Ans,
                     teachersNote: teachersNote.recordset
                 };
@@ -191,6 +193,7 @@ router.get('/final_work_questions/:id', async (req, res) => {
                 id: q.id,
                 title: q.title,
                 type: q.type,
+                bgType: q.bgType,
                 audio: q.audio,
                 page: q.page,
                 pageId: q.page,

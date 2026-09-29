@@ -86,6 +86,46 @@ const hasValue = (value) => (
     typeof value === 'string' && value.trim().length > 0
 );
 
+const sendMediaFile = async (res, next, filePath, allowedExtensions) => {
+    if (!hasValue(filePath) || !path.isAbsolute(filePath.trim())) {
+        return res.status(404).json({ error: 'Media file is not configured' });
+    }
+
+    const resolvedPath = path.normalize(filePath.trim());
+    const extension = path.extname(resolvedPath).toLowerCase();
+    if (!allowedExtensions.has(extension)) {
+        return res.status(415).json({ error: 'Unsupported media file type' });
+    }
+
+    let fileStats;
+    try {
+        fileStats = await fs.promises.stat(resolvedPath);
+    } catch {
+        return res.status(404).json({ error: 'Media file does not exist' });
+    }
+
+    if (!fileStats.isFile()) {
+        return res.status(404).json({ error: 'Media file does not exist' });
+    }
+
+    res.setHeader('Cache-Control', 'no-cache, private');
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.type(extension);
+    return res.sendFile(resolvedPath, (error) => {
+        if (!error) return;
+
+        console.error('Error sending media file:', error);
+        if (res.headersSent) {
+            next(error);
+            return;
+        }
+
+        res.status(error.statusCode || 500).json({
+            error: 'Failed to send media file'
+        });
+    });
+};
+
 const buildMediaUrl = (type, id, field) => (
     `/media/${type}/${id}/${field}`
 );
@@ -166,6 +206,36 @@ router.get('/home_media', async (req, res) => {
     }
 });
 
+router.get('/media/chapters/:bookId/:chapterId/icon', async (req, res, next) => {
+    const bookId = getPositiveInteger(req.params.bookId);
+    const chapterId = getPositiveInteger(req.params.chapterId);
+
+    if (bookId === null || chapterId === null) {
+        return res.status(404).json({ error: 'Media not found' });
+    }
+
+    try {
+        const pool = await db.getPool();
+        const result = await pool.request()
+            .input('BookID', db.sql.Int, bookId)
+            .input('ChapterID', db.sql.Int, chapterId)
+            .query(`
+                SELECT [ChapterImage] AS [filePath]
+                FROM [dbo].[Chapters]
+                WHERE [BookID] = @BookID AND [ChapterID] = @ChapterID AND ISNULL([NotActive], 0) = 0
+            `);
+
+        if (!result.recordset[0]) {
+            return res.status(404).json({ error: 'Media not found' });
+        }
+
+        return sendMediaFile(res, next, result.recordset[0].filePath, ICON_EXTENSIONS);
+    } catch (error) {
+        console.error('Error loading media file:', error);
+        return res.status(500).json({ error: 'Failed to load media file' });
+    }
+});
+
 router.get('/media/:type/:id/:field', async (req, res, next) => {
     const mediaType = MEDIA_TYPES[req.params.type];
     const mediaId = getPositiveInteger(req.params.id);
@@ -186,44 +256,7 @@ router.get('/media/:type/:id/:field', async (req, res, next) => {
                     AND ISNULL([NotActive], 0) = 0
             `);
 
-        const filePath = result.recordset[0]?.filePath;
-        if (!hasValue(filePath) || !path.isAbsolute(filePath.trim())) {
-            return res.status(404).json({ error: 'Media file is not configured' });
-        }
-
-        const resolvedPath = path.normalize(filePath.trim());
-        const extension = path.extname(resolvedPath).toLowerCase();
-        if (!mediaField.extensions.has(extension)) {
-            return res.status(415).json({ error: 'Unsupported media file type' });
-        }
-
-        let fileStats;
-        try {
-            fileStats = await fs.promises.stat(resolvedPath);
-        } catch {
-            return res.status(404).json({ error: 'Media file does not exist' });
-        }
-
-        if (!fileStats.isFile()) {
-            return res.status(404).json({ error: 'Media file does not exist' });
-        }
-
-        res.setHeader('Cache-Control', 'no-cache, private');
-        res.setHeader('X-Content-Type-Options', 'nosniff');
-        res.type(extension);
-        return res.sendFile(resolvedPath, (error) => {
-            if (!error) return;
-
-            console.error('Error sending media file:', error);
-            if (res.headersSent) {
-                next(error);
-                return;
-            }
-
-            res.status(error.statusCode || 500).json({
-                error: 'Failed to send media file'
-            });
-        });
+        return sendMediaFile(res, next, result.recordset[0]?.filePath, mediaField.extensions);
     } catch (error) {
         console.error('Error loading media file:', error);
         return res.status(500).json({ error: 'Failed to load media file' });

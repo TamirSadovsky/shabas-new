@@ -8,6 +8,7 @@ import AutosizeTextAreaField from '../AutosizeTextAreaField/AutosizeTextAreaFiel
 import SubmitButton from '../SubmitButton/SubmitButton';
 import { useSelector } from 'react-redux';
 import logServiceInstance from '../../logService';
+import { shouldHideInstructionTitle } from '../../constants/utils';
 import OpenQuestionSubmitIndication from '../OpenQuestionSubmitIndicator/OpenQuestionSubmitIndication';
 
 const OpenQuestion = ({pageId, title, questionInfo, nextLevel, completeLevel, setQuestions, questionId, increaseLevel}) => {
@@ -57,9 +58,11 @@ const OpenQuestion = ({pageId, title, questionInfo, nextLevel, completeLevel, se
 
     return (
         <div className="open-question-wrapper">
-            <header className='open-question-header'>
-                הקלד את התשובות
-            </header>
+            {!shouldHideInstructionTitle(questionInfo) && (
+                <header className='open-question-header'>
+                    הקלד את התשובות
+                </header>
+            )}
             <section className='open-question-section'>
                 {/* <div className='open-question-title'>
                     <AudioPlayer audioName={questionInfo.audio}></AudioPlayer>

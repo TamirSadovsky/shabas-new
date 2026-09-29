@@ -7,7 +7,7 @@ import arrow from '../../assets/arrow.svg'
 import { getImageUrl } from '../../constants/importImage';
 import ImageComponenet from '../ImageComponenet/ImageComponent';
 import { useSelector } from 'react-redux';
-import { sendToLog } from '../../constants/utils';
+import { sendToLog, shouldHideInstructionTitle } from '../../constants/utils';
 import logServiceInstance from '../../logService';
 
 const SingleChoice = ({questionInfo, questionId, nextLevel, completeLevel, setQuestions, pageId, increaseLevel}) => {
@@ -95,7 +95,9 @@ const SingleChoice = ({questionInfo, questionId, nextLevel, completeLevel, setQu
                 padding={"30px"}
             />
             <div className="radio-buttons-wrapper">
-                <div className='radio-buttons-title'>סמן את התשובה הנכונה</div>
+                {!shouldHideInstructionTitle(questionInfo) && (
+                    <div className='radio-buttons-title'>סמן את התשובה הנכונה</div>
+                )}
                 {questionInfo.options.map(option => (
                     <div className='single-choice_row'>
                         <AudioPlayer

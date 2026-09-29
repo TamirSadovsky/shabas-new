@@ -13,6 +13,7 @@ import {
     cata4,
     cata5
 } from '../../assets/cata_images.js'
+import { resolveMediaUrl } from '../../constants/mediaUrl.js'
 import { AnimatePresence, motion } from 'framer-motion';
 
 const variants = {
@@ -46,6 +47,12 @@ const LevelFinshed = ({setLevelFinished, type, pageId, title, questionInfo, next
     const userState = useSelector(state => state.user);
 
     const getImage = () => {
+        const chapterImage = selector.regular?.[pageState.id]?.image
+        const resolvedImage = resolveMediaUrl(chapterImage)
+        if (resolvedImage) {
+            return resolvedImage
+        }
+
         switch(pageState.id){
             case '1':
                 return cata1

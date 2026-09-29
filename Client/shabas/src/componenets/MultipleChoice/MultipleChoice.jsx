@@ -8,7 +8,7 @@ import SubmitButton from '../SubmitButton/SubmitButton';
 import ImageComponenet from '../ImageComponenet/ImageComponent';
 import { getImageUrl } from '../../constants/importImage';
 import { useSelector } from 'react-redux';
-import { sendToLog } from '../../constants/utils';
+import { sendToLog, shouldHideInstructionTitle } from '../../constants/utils';
 import logServiceInstance from '../../logService';
 import useQuestionEffect from '../../hooks/useQuestionEffect';
 
@@ -101,7 +101,9 @@ const MultipleChoice = ({ pageId, questionInfo, nextLevel, completeLevel, setQue
                 padding={"30px"}
             />
             <div className="radio-buttons-wrapper">
-                <div className='radio-buttons-title'>סמן את התשובות הנכונות</div>
+                {!shouldHideInstructionTitle(questionInfo) && (
+                    <div className='radio-buttons-title'>סמן את התשובות הנכונות</div>
+                )}
                 {questionInfo.options.map(option => (
                     <div className='multiple-choice_row' key={option.id}>
                         <AudioPlayer

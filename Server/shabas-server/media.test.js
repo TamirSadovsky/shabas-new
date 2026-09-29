@@ -31,6 +31,7 @@ let baseUrl;
 let server;
 let temporaryDirectory;
 let videoPath;
+let chapterIconPath;
 let unsupportedPath;
 
 before(async () => {
@@ -38,9 +39,11 @@ before(async () => {
         path.join(os.tmpdir(), 'shabas media ')
     );
     videoPath = path.join(temporaryDirectory, 'סרטון בדיקה.mp4');
+    chapterIconPath = path.join(temporaryDirectory, 'chapter-icon.png');
     unsupportedPath = path.join(temporaryDirectory, 'not-media.txt');
 
     await fs.writeFile(videoPath, Buffer.from('0123456789'));
+    await fs.writeFile(chapterIconPath, Buffer.from('PNGDATA'));
     await fs.writeFile(unsupportedPath, 'unsupported');
 
     const app = express();
@@ -147,4 +150,62 @@ test('media endpoint returns 404 for missing and invalid media', async () => {
 
     assert.equal(missingResponse.status, 404);
     assert.equal(invalidResponse.status, 404);
+});
+
+test('chapter icon endpoint serves a valid absolute png', async () => {
+    queryHandler = async (sqlText, inputs) => {
+        assert.match(sqlText, /\[dbo\]\.\[Chapters\]/);
+        assert.match(sqlText, /\[ChapterImage\]/);
+        assert.equal(inputs.BookID, 2);
+        assert.equal(inputs.ChapterID, 1);
+        return { recordset: [{ filePath: chapterIconPath }] };
+    };
+
+    const response = await fetch(`${baseUrl}/media/chapters/2/1/icon`);
+    const body = Buffer.from(await response.arrayBuffer());
+
+    assert.equal(response.status, 200);
+    assert.equal(response.headers.get('content-type'), 'image/png');
+    assert.equal(response.headers.get('cache-control'), 'no-cache, private');
+    assert.equal(response.headers.get('x-content-type-options'), 'nosniff');
+    assert.equal(body.toString(), 'PNGDATA');
+});
+
+test('chapter icon endpoint rejects relative filenames', async () => {
+    queryHandler = async (sqlText, inputs) => {
+        assert.match(sqlText, /\[dbo\]\.\[Chapters\]/);
+        assert.equal(inputs.BookID, 2);
+        assert.equal(inputs.ChapterID, 1);
+        return { recordset: [{ filePath: 'chapter-icon.png' }] };
+    };
+
+    const response = await fetch(`${baseUrl}/media/chapters/2/1/icon`);
+    const body = await response.json();
+
+    assert.equal(response.status, 404);
+    assert.equal(body.error, 'Media file is not configured');
+});
+
+test('chapter icon endpoint returns 404 for invalid ids and missing chapters', async () => {
+    queryHandler = async (sqlText, inputs) => {
+        assert.match(sqlText, /\[dbo\]\.\[Chapters\]/);
+        assert.equal(inputs.BookID, 2);
+        assert.equal(inputs.ChapterID, 99);
+        return { recordset: [] };
+    };
+
+    const missingResponse = await fetch(`${baseUrl}/media/chapters/2/99/icon`);
+    const invalidBookResponse = await fetch(`${baseUrl}/media/chapters/abc/1/icon`);
+    const invalidChapterResponse = await fetch(`${baseUrl}/media/chapters/2/0/icon`);
+
+    const missingBody = await missingResponse.json();
+    const invalidBookBody = await invalidBookResponse.json();
+    const invalidChapterBody = await invalidChapterResponse.json();
+
+    assert.equal(missingResponse.status, 404);
+    assert.equal(invalidBookResponse.status, 404);
+    assert.equal(invalidChapterResponse.status, 404);
+    assert.equal(missingBody.error, 'Media not found');
+    assert.equal(invalidBookBody.error, 'Media not found');
+    assert.equal(invalidChapterBody.error, 'Media not found');
 });

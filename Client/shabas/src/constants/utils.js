@@ -37,4 +37,8 @@ const sendToLog = async ({userId, categoryId, questionId, isQuestion, isCorrect,
     }
 }
 
-export {getNumberFromString, debounce, importImage, sendToLog}
+const shouldHideInstructionTitle = (questionInfo) => (
+    Number(questionInfo?.bgType) === 1
+);
+
+export {getNumberFromString, debounce, importImage, sendToLog, shouldHideInstructionTitle}

@@ -6,7 +6,7 @@ import AudioPlayer from '../AudioPlayer/AudioPlayer';
 import SubmitButton from '../SubmitButton/SubmitButton';
 import x_mark from '../../assets/x_mark.svg'
 import check_mark from '../../assets/check-empty.svg'
-import { getNumberFromString } from '../../constants/utils';
+import { getNumberFromString, shouldHideInstructionTitle } from '../../constants/utils';
 import { useSelector } from 'react-redux';
 import logServiceInstance from '../../logService';
 import { Position } from 'react-flow-renderer';
@@ -184,9 +184,11 @@ const ConnectTheDots = ({pageId, nextLevel, completeLevel, setQuestions, questio
     return (
         <>
             <div className='CTD-page'>
-                <header className='CTD-header'>
-                    <h3>מתח קווים בין המשפטים למושגים המתאימים</h3>
-                </header>
+                {!shouldHideInstructionTitle(questionInfo) && (
+                    <header className='CTD-header'>
+                        <h3>מתח קווים בין המשפטים למושגים המתאימים</h3>
+                    </header>
+                )}
                 <div className='CTD_wrapper'>
                     <div className='image-area'> </div>
                     {rightElements.map((element, index) => {

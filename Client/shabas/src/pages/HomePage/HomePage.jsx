@@ -102,18 +102,33 @@ function BatteryIcon({ percent = 0, charging = false, showPercent = true, clipId
 
 /* Smart Battery Button */
 function BatteryButton() {
-    const [stateIndex, setStateIndex] = useState(0);
+    const [demoIndex, setDemoIndex] = useState(0);
+    const [liveBat, setLiveBat] = useState(null);
     const clipId = useId?.() || 'bat-clip-fixed';
+    const hasElectron = typeof window !== 'undefined' && !!window.electronAPI;
 
     useEffect(() => {
-        // טיימר שמעביר למצב הבא כל 3000 אלפיות שנייה (3 שניות)
+        if (hasElectron) {
+            let unsub;
+            (async () => {
+                try {
+                    const initial = await window.electronAPI.getBattery();
+                    setLiveBat(initial);
+                } catch {
+                    setLiveBat({ hasBattery: false, percent: null, isCharging: false });
+                }
+                unsub = window.electronAPI.subscribeBattery?.((next) => setLiveBat(next));
+            })();
+            return () => { if (unsub) unsub(); };
+        }
+
         const id = setInterval(() => {
-            setStateIndex((prev) => (prev + 1) % batteryDemoStates.length);
+            setDemoIndex((prev) => (prev + 1) % batteryDemoStates.length);
         }, 3000);
         return () => clearInterval(id);
-    }, []);
+    }, [hasElectron]);
 
-    const bat = batteryDemoStates[stateIndex];
+    const bat = hasElectron ? liveBat : batteryDemoStates[demoIndex];
     const hasBattery = bat?.hasBattery === true;
     const percent = typeof bat?.percent === 'number' ? bat.percent : 0;
     const unavailable = !hasBattery || bat?.percent == null;
