@@ -7,6 +7,7 @@ import YesNoQuestionForm from "../../componenets/YesOrNo/YesOrNo";
 import DragNDrop from "../../componenets/DragNDrop/DragNDrop";
 import ConnectTheDots from "../../componenets/ConnectTheDots/ConnectTheDots";
 import Explanation from "../../componenets/Explanation/Explanation";
+import TableQuestion from "../../componenets/TableQuestion/TableQuestion";
 import axiosInstance from "../../constants/axios.config";
 import OpenQuestion from "../../componenets/OpenQuestion/OpenQuestion";
 import OpenQuestionFinalWork from "../../componenets/OpenQuestion/OpenQuestionsFinalWork/OpenQuestionFinalWork";
@@ -16,6 +17,8 @@ import { debounce, throttle } from "lodash";
 import Modal from "../../componenets/Modal/Modal";
 import FinalWorkModal from "../../componenets/FinalWorkModal/FinalWorkModal";
 import LevelFinshed from "../../componenets/LevelFinished/LevelFinished";
+
+const isContentPage = (pageType) => pageType === "explanation" || pageType === "table";
 
 function QuestionPage({ type }) {
 
@@ -196,7 +199,7 @@ function QuestionPage({ type }) {
         setActualPageCount((p) => p + 1);
         setCurrentPage((p) => p + 1);
 
-        if (!explanation && lastPageType !== "explanation") {
+        if (!explanation && !isContentPage(lastPageType)) {
             setLevels((p) => p + 1);
         }
     };
@@ -225,7 +228,7 @@ function QuestionPage({ type }) {
         setActualPageCount((p) => p - 1);
         setCurrentPage((p) => p - 1);
 
-        if (!explanation && lastPageType !== "explanation") {
+        if (!explanation && !isContentPage(lastPageType)) {
             setLevels((p) => Math.max(1, p - 1));
         }
     };
@@ -391,10 +394,14 @@ function QuestionPage({ type }) {
             questionComponent = <Explanation questionInfo={currentQuestion} />;
             break;
 
+        case "table":
+            questionComponent = <TableQuestion questionInfo={currentQuestion} />;
+            break;
+
         case "open_question":
             if (type === "finalWork") {
                 const nonExplanation = Object.values(questions).filter(
-                    (q) => q.type !== "explanation"
+                    (q) => !isContentPage(q.type)
                 );
                 const isFinal = nonExplanation.every(
                     (q) => q.done === true
@@ -442,7 +449,7 @@ function QuestionPage({ type }) {
                 increaseLevel={debouncedIncreaseLevel}
                 decreaseLevel={debouncedDecreaseLevel}
                 currentQuestion={currentQuestion}
-                explanation={currentQuestion.type === "explanation"}
+                explanation={isContentPage(currentQuestion.type)}
                 navigationLevel={levels}
                 side={side}
                 page={actualPageCount}
@@ -474,7 +481,7 @@ function QuestionPage({ type }) {
                 increaseLevel={debouncedIncreaseLevel}
                 decreaseLevel={debouncedDecreaseLevel}
                 currentQuestion={currentQuestion}
-                explanation={currentQuestion.type === "explanation"}
+                explanation={isContentPage(currentQuestion.type)}
                 navigationLevel={levels}
                 side={side}
                 page={actualPageCount}

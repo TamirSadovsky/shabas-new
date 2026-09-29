@@ -11,6 +11,7 @@ import {
     cata5
 } from '../../assets/cata_images.js'
 import axiosInstance from '../../constants/axios.config.js'
+import { resolveMediaUrl } from '../../constants/mediaUrl.js'
 
 
 function FinalWorkPage({triggerAnimation, setPageDirection}) {
@@ -27,6 +28,19 @@ function FinalWorkPage({triggerAnimation, setPageDirection}) {
             ? Math.abs(numericIndex - 1) % categoryImages.length
             : 0
         return categoryImages[imageIndex]
+    }
+
+    const getCategoryImage = (category) => {
+        const rawImage = category?.ChapterImage ?? category?.image
+        const normalized = typeof rawImage === 'string' ? rawImage.trim() : ''
+        const canResolve = normalized.startsWith('/media/') || /^(https?:)/i.test(normalized)
+        if (canResolve) {
+            const resolvedImage = resolveMediaUrl(normalized)
+            if (resolvedImage) {
+                return resolvedImage
+            }
+        }
+        return returnPhotoFromIndex(category?.ChapterID)
     }
 
     const fetchFinalWorkCategories = async (bookId, signal)=>{
@@ -95,7 +109,7 @@ function FinalWorkPage({triggerAnimation, setPageDirection}) {
                             onClick={handleCategoryClick}
                             category_identifier={cata.ChapterID}
                             category_name={cata.ChapterName}
-                            imgsrc={returnPhotoFromIndex(cata.ChapterID)}
+                            imgsrc={getCategoryImage(cata)}
                         />
                     ))}
                 </section>

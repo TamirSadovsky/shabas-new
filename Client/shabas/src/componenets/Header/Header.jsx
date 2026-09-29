@@ -3,6 +3,9 @@
   import { useDispatch, useSelector } from 'react-redux';
   import PriamryButton from '../PrimaryButton/PrimaryButton';
   import user_icon from '../../assets/user_icon.svg';
+  import sbs_logo from '../../assets/sbs_logo.svg';
+  import logo_new from '../../assets/logo_new.png';
+  import axiosInstance from '../../constants/axios.config.js';
   import logServiceInstance from '../../logService';
 
   // ===== Icons =====
@@ -54,6 +57,74 @@
   }
 
   // ===== Battery (always visible) =====
+  const batteryDemoStates = [
+    { hasBattery: true, percent: 100, isCharging: false },
+    { hasBattery: true, percent: 65, isCharging: false },
+    { hasBattery: true, percent: 35, isCharging: false },
+    { hasBattery: true, percent: 12, isCharging: false },
+    { hasBattery: true, percent: 8, isCharging: true },
+    { hasBattery: false, percent: null, isCharging: false }
+  ];
+
+  function HomeStyleBattery() {
+    const [demoIndex, setDemoIndex] = useState(0);
+    const [liveBat, setLiveBat] = useState(null);
+    const clipId = useId?.() || 'header-home-bat';
+    const hasElectron = typeof window !== 'undefined' && !!window.electronAPI;
+
+    useEffect(() => {
+      if (hasElectron) {
+        let unsub;
+        (async () => {
+          try {
+            const initial = await window.electronAPI.getBattery();
+            setLiveBat(initial);
+          } catch {
+            setLiveBat({ hasBattery: false, percent: null, isCharging: false });
+          }
+          unsub = window.electronAPI.subscribeBattery?.((next) => setLiveBat(next));
+        })();
+        return () => { if (unsub) unsub(); };
+      }
+
+      const id = setInterval(() => {
+        setDemoIndex((prev) => (prev + 1) % batteryDemoStates.length);
+      }, 3000);
+      return () => clearInterval(id);
+    }, [hasElectron]);
+
+    const bat = hasElectron ? liveBat : batteryDemoStates[demoIndex];
+    const hasBattery = bat?.hasBattery === true;
+    const percent = typeof bat?.percent === 'number' ? bat.percent : 0;
+    const unavailable = !hasBattery || bat?.percent == null;
+    let color = '#22c55e';
+    if (percent < 20) color = '#ef4444';
+    else if (percent < 50) color = '#f59e0b';
+    if (unavailable) color = '#9ca3af';
+    const fillWidth = Math.max(0, Math.min(28, Math.round((percent / 100) * 28)));
+    const label = unavailable ? '־' : `${Math.round(percent)}%`;
+    const title = unavailable
+      ? 'סוללה: לא זמין'
+      : `סוללה: ${percent}%${bat?.isCharging ? ' (בטעינה)' : ''}`;
+
+    return (
+      <div className="header-home-battery" title={title} aria-label={title}>
+        <svg viewBox="0 0 36 18" width="42" height="22" aria-hidden="true">
+          <rect x="1" y="3" width="30" height="12" rx="2" ry="2" fill="transparent" stroke="#354052" strokeWidth="2" />
+          <rect x="32" y="6" width="3" height="6" rx="1" ry="1" fill="#354052" />
+          <clipPath id={clipId}>
+            <rect x="2" y="4" width={unavailable ? 28 : fillWidth} height="10" rx="1" ry="1" />
+          </clipPath>
+          <rect x="2" y="4" width="28" height="10" rx="1" ry="1" fill={color} clipPath={`url(#${clipId})`} />
+          {!unavailable && bat?.isCharging && (
+            <path d="M15 5 l-3 5 h3 l-1 5 l4-7 h-3 l2-3 z" fill="#fff" opacity="0.9" />
+          )}
+        </svg>
+        <span className="header-battery-percent">{label}</span>
+      </div>
+    );
+  }
+
   function BatteryButton() {
     const [bat, setBat] = useState(null);
     const clipId = useId?.() || 'bat-clip-fixed';
@@ -122,6 +193,7 @@ function Header({ setPageDirection }) {
   const userState = useSelector((state) => state.user);
   const categoryState = useSelector((state) => state.level);
   const pageState = useSelector((state) => state.page);
+  const [sbsClicks, setSbsClicks] = useState(0);
 
   const handleExitButton = () => {
     console.log('[Header] יציאה נלחץ', {
@@ -160,13 +232,42 @@ function Header({ setPageDirection }) {
     const isWelcome = pageState.page === 'welcome';
     const canShowPower = typeof window !== 'undefined' && window.electronAPI && isWelcome;
 
+    useEffect(() => {
+      const resetExitClicks = (event) => {
+        if (event.target.closest('[data-sbs-exit-logo]')) return;
+        setSbsClicks(0);
+      };
+      document.addEventListener('click', resetExitClicks, true);
+      return () => document.removeEventListener('click', resetExitClicks, true);
+    }, []);
+
+    useEffect(() => {
+      if (sbsClicks === 6) {
+        setSbsClicks(0);
+        axiosInstance.post('/kill_server');
+      }
+    }, [sbsClicks]);
+
     return (
       <>
-        <header className="header" style={{ position: 'relative' }}>
-          {/* Battery at top-left — ALWAYS visible */}
-          <BatteryButton />
+        <header className={`header ${isWelcome ? 'header-welcome' : ''}`} style={{ position: 'relative' }}>
+          {isWelcome && (
+            <>
+              <HomeStyleBattery />
+              <span className="header-welcome-title">יחידות לימוד ללמידה עצמית</span>
+              <div className="header-welcome-logos">
+                <img className="header-red-logo" src={logo_new} alt="atid" />
+                <img
+                  className="header-sbs-logo"
+                  data-sbs-exit-logo="true"
+                  src={sbs_logo}
+                  alt="shabas"
+                  onClick={() => setSbsClicks((count) => count + 1)}
+                />
+              </div>
+            </>
+          )}
 
-          {/* Power button — only on the welcome page */}
           {canShowPower && (
             <button
               onClick={onPowerClick}
@@ -197,11 +298,11 @@ function Header({ setPageDirection }) {
             </button>
           )}
 
-          {isWelcome && 'יחידות לימוד ללמידה עצמית'}
-
           {!isWelcome && (
             <div className="header_content">
-              <PriamryButton
+              <div className="header_left_cluster">
+                <HomeStyleBattery />
+                <PriamryButton
                 text="יציאה"
                 width="81px"
                 height="48px"
@@ -209,8 +310,8 @@ function Header({ setPageDirection }) {
                 textColor="#3072AF"
                 fontSize="20px"
                 onClick={handleExitButton}
-                wrapperStyle={{ transform: 'translateX(40px)' }} // הזזה עדינה ימינה
               />
+              </div>
 
               {pageState.page !== 'final_work' &&
                 categoryState['regular'] &&

@@ -8,6 +8,7 @@ import Sliders from './componenets/Sliders/Sliders'
 import QuestionPage from './pages/QuestionPage/QuestionPage'
 import FinalWorkPage from './pages/FinalWorkPage/FinalWorkPage'
 import axiosInstance from './constants/axios.config'
+import { resolveMediaUrl } from './constants/mediaUrl'
 import ToturialPage from './pages/TutorialPage/TutorialPage'
 import HomePage from './pages/HomePage/HomePage'
 import logServiceInstance from './logService'
@@ -41,6 +42,30 @@ function App() {
     useEffect(() => {
         logServiceInstance.setBookId(pageState.bookId)
     }, [pageState.bookId])
+
+    useEffect(() => {
+        const bookImage = pageState.bookImage
+        const shouldUseBookBanner =
+            pageState.page !== 'home' &&
+            typeof bookImage === 'string' &&
+            bookImage.trim().length > 0
+        const resolvedBanner = shouldUseBookBanner
+            ? resolveMediaUrl(bookImage)
+            : undefined
+
+        if (resolvedBanner) {
+            document.body.style.setProperty(
+                '--reader-banner',
+                `url("${resolvedBanner}")`
+            )
+        } else {
+            document.body.style.removeProperty('--reader-banner')
+        }
+
+        return () => {
+            document.body.style.removeProperty('--reader-banner')
+        }
+    }, [pageState.page, pageState.bookImage])
 
     // ░░░░░░░░░░░░░░░░░░░░░░
     // ╔═╗ FIX: הגנה על questionPage 

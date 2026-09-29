@@ -10,6 +10,7 @@ import { Droppable } from './DragabbleProps/Dropable';
 import SubmitButton from '../SubmitButton/SubmitButton';
 import { useSelector } from 'react-redux';
 import logServiceInstance from '../../logService';
+import { shouldHideInstructionTitle } from '../../constants/utils';
 
 const DragNDrop = ({nextLevel, completeLevel, setQuestions, questionInfo, questionId, pageId, increaseLevel}) => {
     // const [selectedOption, setSelectedOption] = useState(undefined);
@@ -155,7 +156,9 @@ const DragNDrop = ({nextLevel, completeLevel, setQuestions, questionInfo, questi
             <DndContext sensors={sensors} onDragEnd={handleDragEnd} onDragStart={handleDragStart}>
                 <div className='dnd-wrapper'>
                     <div className='inputs-dnd'>
-                        <span className='dnd-title'>גרור ממחסן המילים את המושג המתאים לכל משפט</span>
+                        {!shouldHideInstructionTitle(questionInfo) && (
+                            <span className='dnd-title'>גרור ממחסן המילים את המושג המתאים לכל משפט</span>
+                        )}
                         {Object.values(transformedData.left).map((element, index) => (
                             <div className='dropable-row'>
                                 <AudioPlayer audioName={element.audio}></AudioPlayer>

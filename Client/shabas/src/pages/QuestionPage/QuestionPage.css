@@ -1,7 +1,7 @@
 .page {
     position: absolute;
     width: 100%;
-    background-image: url(/src/assets/clouds_banner.png), linear-gradient(#8AB5D8 0%, #8AB5D8 6%, #EDF7FE 50%, #EDF7FE 100%);
+    background-image: var(--reader-banner, url(/src/assets/clouds_banner.png)), linear-gradient(#8AB5D8 0%, #8AB5D8 6%, #EDF7FE 50%, #EDF7FE 100%);
     background-size: contain;
     background-position: center top;
     background-repeat: no-repeat;

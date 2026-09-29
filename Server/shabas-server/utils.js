@@ -13,7 +13,9 @@ const getQuestionType = (codeType) => {
         case 24:
             return "single_choice" 
         case 25:
-            return "open_question" 
+            return "open_question"
+        case 41:
+            return "table"
         default:
             return codeType;
     }

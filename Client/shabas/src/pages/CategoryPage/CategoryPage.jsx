@@ -11,27 +11,24 @@ import {
     cata5
 } from '../../assets/cata_images.js'
 
-import sbs_logo from '../../assets/sbs_logo.svg'
-import atid_logo from '../../assets/atid_logo.svg'
 import FinalWorkButton from '../../componenets/FinalWorkButton/FinalWorkButton.jsx'
 import axiosInstance from '../../constants/axios.config.js'
+import { resolveMediaUrl } from '../../constants/mediaUrl.js'
 import logServiceInstance from '../../logService.js'
 
 function CategoryPage({triggerAnimation, setPageDirection}) {
     const userState = useSelector(state => state.user)
     const levelState = useSelector(state => state.level['regular'])
     const pageState = useSelector(state => state.page)
-    const [rightLogoClick, setRightLogoClick] = useState(0)
     const [loadState, setLoadState] = useState('loading')
-
-
 
     const dispatch = useDispatch()
     const categoryImages = [cata1, cata2, cata3, cata4, cata5]
 
     const getCategoryImage = (categoryId, image) => {
-        if (typeof image === 'string' && /^(https?:|data:|blob:)/i.test(image)) {
-            return image
+        const resolvedImage = resolveMediaUrl(image)
+        if (resolvedImage) {
+            return resolvedImage
         }
 
         const numericId = Number(categoryId)
@@ -46,7 +43,6 @@ function CategoryPage({triggerAnimation, setPageDirection}) {
         if (!category) return
 
         console.log(category.level, category.total)
-        // if(levelState[category_identifier].level >= levelState[category_identifier].total) return; // Make the user unable to visit the chapter again.
         console.log("category_identifier", category_identifier)
         setPageDirection(false)
         dispatch({type:'PICK_CATEGORY', page:'category', id:category_identifier})
@@ -58,7 +54,6 @@ function CategoryPage({triggerAnimation, setPageDirection}) {
             isCorrect:0,
             answer:'picked chapter'
         }
-        // sendToLog(data)
         logServiceInstance.log(data)
     }
 
@@ -84,8 +79,6 @@ function CategoryPage({triggerAnimation, setPageDirection}) {
             console.log("Error fetching categories: ", e);
             setLoadState('error')
         }
-
-
     }
 
     useEffect(()=>{
@@ -94,34 +87,8 @@ function CategoryPage({triggerAnimation, setPageDirection}) {
         return () => controller.abort()
     },[pageState.bookId])
 
-    useEffect(() => {
-        const resetExitClicks = (event) => {
-            if (event.target.closest('[data-sbs-exit-logo]')) {
-                return
-            }
-            setRightLogoClick(0)
-        }
-
-        document.addEventListener('click', resetExitClicks, true)
-        return () => document.removeEventListener('click', resetExitClicks, true)
-    }, [])
-
-    useEffect(()=>{
-        if(rightLogoClick === 6){
-            setRightLogoClick(0)
-            axiosInstance.post('/kill_server')
-        }
-    },[rightLogoClick])
-
     return (
-        <>  
-            <img className='atid' src={atid_logo}/>
-            <img
-                className='sbs'
-                data-sbs-exit-logo="true"
-                onClick={()=> setRightLogoClick(prev => prev + 1)}
-                src={sbs_logo}
-            />
+        <>
             <main className='category_wrapper'>
                 <header className='category_header'>
                     <div className='category_title'>{pageState.bookName || 'המשפחה'}</div>
@@ -157,3 +124,4 @@ function CategoryPage({triggerAnimation, setPageDirection}) {
 }
 
 export default CategoryPage
+

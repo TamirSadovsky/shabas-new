@@ -150,7 +150,9 @@ app.get('/chapter_list', async (req, res) => {
                 level: item.NumAmswerd ?? 0,
                 name: item.ChapterName,
                 total: item.TotalQNum ?? 0,
-                image: item.ChapterImage,
+                image: typeof item.ChapterImage === 'string' && item.ChapterImage.trim().length > 0
+                    ? `/media/chapters/${bookId}/${item.ChapterID}/icon`
+                    : null,
                 audioLink: item.AudioLink,
                 finalExam: item.FinalExamID,
                 finalInProgress: item.FinalInProgress
