@@ -84,15 +84,15 @@
 }
 
 .header-red-logo {
-    width: 70px;
-    height: 70px;
+    width: 50px;
+    height: 50px;
     object-fit: contain;
     display: block;
 }
 
 .header-sbs-logo {
-    width: 96px;
-    height: 96px;
+    width: 56px;
+    height: 56px;
     object-fit: contain;
     display: block;
     cursor: pointer;

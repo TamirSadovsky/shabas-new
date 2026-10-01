@@ -19,6 +19,7 @@ import FinalWorkModal from "../../componenets/FinalWorkModal/FinalWorkModal";
 import LevelFinshed from "../../componenets/LevelFinished/LevelFinished";
 
 const isContentPage = (pageType) => pageType === "explanation" || pageType === "table";
+const TYPES_WITH_OWN_IMAGE = new Set(["single_choice", "multi_choice", "true_false", "table"]);
 
 function QuestionPage({ type }) {
 
@@ -318,6 +319,9 @@ function QuestionPage({ type }) {
     // ---- RENDER QUESTION COMPONENT ----
     const currentQuestion = questions[questionId];
     let questionComponent = null;
+    const showTipExplanation =
+        currentQuestion?.explanation?.length > 0 && currentQuestion.type !== "explanation";
+    const tipHidesImage = TYPES_WITH_OWN_IMAGE.has(currentQuestion.type);
 
     switch (currentQuestion.type) {
         case "single_choice":
@@ -457,8 +461,8 @@ function QuestionPage({ type }) {
                 currentPage={currentPage}
                 allPages={allPages}
             >
-                {currentQuestion?.explanation?.length > 0 && (
-                    <Explanation questionInfo={currentQuestion} />
+                {showTipExplanation && (
+                    <Explanation questionInfo={currentQuestion} hideImage={tipHidesImage} />
                 )}
                 {questionComponent}
             </LayoutwithAnimation>
@@ -489,10 +493,11 @@ function QuestionPage({ type }) {
                 currentPage={currentPage}
                 allPages={allPages}
             >
-                {currentQuestion?.explanation?.length > 0 && (
+                {showTipExplanation && (
                     <Explanation
                         questionInfo={currentQuestion}
                         className={"final-work-explanation"}
+                        hideImage={tipHidesImage}
                     />
                 )}
                 {questionComponent}

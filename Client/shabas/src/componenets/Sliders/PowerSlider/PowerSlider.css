@@ -76,6 +76,7 @@
     height: 20px;
     object-fit: contain;
     display: block;
+    filter: brightness(0) invert(1);
 }
 
 /* --- עיצוב המודאל (ConfirmDialog) מבוסס על הסטייל של ה-Header --- */

@@ -110,8 +110,8 @@
     return (
       <div className="header-home-battery" title={title} aria-label={title}>
         <svg viewBox="0 0 36 18" width="42" height="22" aria-hidden="true">
-          <rect x="1" y="3" width="30" height="12" rx="2" ry="2" fill="transparent" stroke="#354052" strokeWidth="2" />
-          <rect x="32" y="6" width="3" height="6" rx="1" ry="1" fill="#354052" />
+          <rect x="1" y="3" width="30" height="12" rx="2" ry="2" fill="transparent" stroke="#FFFFFF" strokeWidth="2" />
+          <rect x="32" y="6" width="3" height="6" rx="1" ry="1" fill="#FFFFFF" />
           <clipPath id={clipId}>
             <rect x="2" y="4" width={unavailable ? 28 : fillWidth} height="10" rx="1" ry="1" />
           </clipPath>

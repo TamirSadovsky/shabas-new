@@ -74,10 +74,10 @@ function BatteryIcon({ percent = 0, charging = false, showPercent = true, clipId
         <div className="battery-container">
             {/* הותאם למידות ולצבעים מה-Figma (30x20 עם סקייל קל לנראות) */}
             <svg viewBox="0 0 36 18" width="42" height="22" aria-hidden="true">
-                {/* מסגרת הסוללה - צבע מדויק מפיגמה #354052 */}
-                <rect x="1" y="3" width="30" height="12" rx="2" ry="2" fill="transparent" stroke="#354052" strokeWidth="2" />
+                {/* מסגרת הסוללה */}
+                <rect x="1" y="3" width="30" height="12" rx="2" ry="2" fill="transparent" stroke="#FFFFFF" strokeWidth="2" />
                 {/* קצה הסוללה (פלוס) */}
-                <rect x="32" y="6" width="3" height="6" rx="1" ry="1" fill="#354052" />
+                <rect x="32" y="6" width="3" height="6" rx="1" ry="1" fill="#FFFFFF" />
 
                 <clipPath id={clipId}>
                     <rect x="2" y="4" width={unavailable ? 28 : w} height="10" rx="1" ry="1" />
@@ -293,31 +293,18 @@ const AudioCard = ({ title, audioUrl, iconUrl, isPlaying, onPlay, currentAudioOb
 };
 
 // Media/Learning Card
-const MediaCard = ({ img, label, progress, onClick }) => (
-    <div className="hp-media-card" onClick={onClick}>
-        <div className="card-top-row">
-            {/* 1. צד ימין: תמונה */}
-            <div className="card-thumb-container">
-                <ThumbnailImage
-                    src={img}
-                    fallback={cata1}
-                    alt={label}
-                    className="card-thumb-img"
-                />
-            </div>
-
-            {/* 2. צד שמאל: אחוזים */}
-            {progress && (
-                <div className="card-progress-container">
-                    <span className="progress-status-text">הושלמו</span>
-                    <span className="progress-value-text">{progress}</span>
-                </div>
-            )}
+const MediaCard = ({ img, label, onClick }) => (
+    <div className="hp-article-card" onClick={onClick}>
+        <div className="article-preview-container">
+            <ThumbnailImage
+                src={img}
+                fallback={cata1}
+                alt={label}
+                className="article-icon-img"
+            />
         </div>
-
-        {/* 3. חלק תחתון: כותרת הקובץ */}
-        <div className="card-footer">
-            <span className="card-title-text">{label}</span>
+        <div className="article-footer">
+            <span className="article-title-text">{label}</span>
         </div>
     </div>
 );
