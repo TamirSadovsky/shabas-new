@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useLayoutEffect, useState } from 'react'
 import './App.css'
 import Header from './componenets/Header/Header'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -42,6 +42,10 @@ function App() {
     useEffect(() => {
         logServiceInstance.setBookId(pageState.bookId)
     }, [pageState.bookId])
+
+    useLayoutEffect(() => {
+        document.body.classList.toggle('reader-mode', pageState.page !== 'home')
+    }, [pageState.page])
 
     useEffect(() => {
         const bookImage = pageState.bookImage
@@ -88,7 +92,7 @@ function App() {
                         animate={{ opacity: 1, x: 0, y: 0 }}
                         exit={{ opacity: 1, x: 0, y: pageDirection ? -768 : 768 }}
                         transition={{ duration: 0.7 }}
-                        className='page'
+                        className={pageState.page === 'home' ? 'page page-home' : 'page'}
                     >
                         {pageState.page !== 'home' && (
                             <Header setPageDirection={setPageDirection} />

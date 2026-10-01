@@ -40,14 +40,20 @@ body {
     min-width: 320px;
     /* min-height: 100vh; */
     min-height: 100%;
+    background-color: #0F172A;
+    background-image: linear-gradient(180deg, #0F172A 0%, #1E293B 100%);
+    background-attachment: fixed;
+    overflow-x: hidden;
+    position: relative;
+}
+
+body.reader-mode {
     background-image: var(--reader-banner, url('../src/assets/clouds_banner.png')),
     linear-gradient(#8AB5D8 0%, #8AB5D8 50%, #EDF7FE 50%, #EDF7FE 100%);
     background-position: center 25%;
     background-size: contain;
-    /* background-attachment: scroll; */
+    background-attachment: scroll;
     background-repeat: no-repeat;
-    overflow-x: hidden;
-    position: relative;
 }
 
 body::-webkit-scrollbar {

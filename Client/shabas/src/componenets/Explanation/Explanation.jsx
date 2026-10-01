@@ -10,7 +10,7 @@ const visibleExplanationText = (html) =>
         .replace(/&nbsp;/gi, ' ')
         .trim();
 
-const Explanation = ({questionInfo, className}) => {
+const Explanation = ({questionInfo, className, hideImage = false}) => {
     const bookId = useSelector((state) => state.page.bookId);
     
    const formatText = () =>{
@@ -28,16 +28,18 @@ const Explanation = ({questionInfo, className}) => {
         return formattedText;
    }
 
-   const img = getImageUrl(questionInfo.img)
+   const img = hideImage ? null : getImageUrl(questionInfo.img)
    const enlargeImage = Boolean(img) && !visibleExplanationText(formatText()) && Number(bookId) > 1
     return (
         <div className={enlargeImage ? 'explanation-wrapper explanation-image-only' : 'explanation-wrapper'}>
+            {!hideImage && (
             <ImageComponenet
                 width={enlargeImage ? "860px" : "220px"}
                 height={enlargeImage ? "auto" : "220px"}
                 padding={enlargeImage ? "0" : "30px"}
                 src={img}
             />
+            )}
             {!enlargeImage && (
             <div className={'explanation-section'} style={{width: !img ? '100%' : ''}}>
                 <div className={className ? className : ''}>

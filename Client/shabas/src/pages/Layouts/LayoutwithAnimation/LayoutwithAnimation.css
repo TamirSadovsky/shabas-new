@@ -7,6 +7,10 @@
     background-repeat: no-repeat;
     /* overflow-x: hidden; */
 }
+
+.page.page-home {
+    background-image: none;
+}
 .question_header{
     padding-top: 2%;
     display: flex;
