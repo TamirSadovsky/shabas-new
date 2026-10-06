@@ -6,6 +6,7 @@
   import sbs_logo from '../../assets/sbs_logo.svg';
   import logo_new from '../../assets/logo_new.png';
   import axiosInstance from '../../constants/axios.config.js';
+  import useBattery from '../../constants/useBattery';
   import logServiceInstance from '../../logService';
 
   // ===== Icons =====
@@ -18,35 +19,28 @@
     );
   }
 
+  /*
+  // Kept so the old header battery can be turned back on.
+  // BatteryIcon and BatteryButton are unused by the home-style header.
   function BatteryIcon({ percent = 0, charging = false, showPercent = true, clipId, unavailable = false }) {
-    // width for the fill (0..28)
     const w = Math.max(0, Math.min(28, Math.round((percent / 100) * 28)));
-
-    // color logic
-    let color = '#16a34a'; // green
-    if (percent < 20) color = '#dc2626'; // red
-    else if (percent < 50) color = '#f59e0b'; // orange
-    if (unavailable) color = '#9ca3af'; // grey when unavailable
-
-    // label inside battery
-    const label = unavailable ? '־' : String(Math.round(percent)); // ״־״ (מקף עברי) כמצב N/A
+    let color = '#16a34a';
+    if (percent < 20) color = '#dc2626';
+    else if (percent < 50) color = '#f59e0b';
+    if (unavailable) color = '#9ca3af';
+    const label = unavailable ? '־' : String(Math.round(percent));
 
     return (
       <svg viewBox="0 0 36 18" width="26" height="14" aria-hidden="true">
-        {/* Outline */}
         <rect x="1" y="3" width="30" height="12" rx="3" ry="3" fill="none" stroke="#444" strokeWidth="2" />
-        {/* Pin */}
         <rect x="32" y="6" width="3" height="6" rx="1" ry="1" fill="#444" />
-        {/* Level (clip for fill) */}
         <clipPath id={clipId}>
           <rect x="2" y="4" width={unavailable ? 28 : w} height="10" rx="2" ry="2" />
         </clipPath>
         <rect x="2" y="4" width="28" height="10" rx="2" ry="2" fill={color} clipPath={`url(#${clipId})`} />
-        {/* Charging bolt */}
         {!unavailable && charging && (
           <path d="M15 5 l-3 5 h3 l-1 5 l4-7 h-3 l2-3 z" fill="#fff" opacity="0.9" />
         )}
-        {/* Numeric percent or dash */}
         {showPercent && (
           <text x="16" y="12" textAnchor="middle" fontSize="7" fontWeight="700" fill="#111">
             {label}
@@ -56,44 +50,73 @@
     );
   }
 
-  // ===== Battery (always visible) =====
-  const batteryDemoStates = [
-    { hasBattery: true, percent: 100, isCharging: false },
-    { hasBattery: true, percent: 65, isCharging: false },
-    { hasBattery: true, percent: 35, isCharging: false },
-    { hasBattery: true, percent: 12, isCharging: false },
-    { hasBattery: true, percent: 8, isCharging: true },
-    { hasBattery: false, percent: null, isCharging: false }
-  ];
-
-  function HomeStyleBattery() {
-    const [demoIndex, setDemoIndex] = useState(0);
-    const [liveBat, setLiveBat] = useState(null);
-    const clipId = useId?.() || 'header-home-bat';
-    const hasElectron = typeof window !== 'undefined' && !!window.electronAPI;
+  function BatteryButton() {
+    const [bat, setBat] = useState(null);
+    const clipId = useId?.() || 'bat-clip-fixed';
 
     useEffect(() => {
-      if (hasElectron) {
-        let unsub;
-        (async () => {
-          try {
-            const initial = await window.electronAPI.getBattery();
-            setLiveBat(initial);
-          } catch {
-            setLiveBat({ hasBattery: false, percent: null, isCharging: false });
-          }
-          unsub = window.electronAPI.subscribeBattery?.((next) => setLiveBat(next));
-        })();
-        return () => { if (unsub) unsub(); };
-      }
+      let unsub;
+      (async () => {
+        if (!window.electronAPI) {
+          setBat({ hasBattery: false, percent: null, isCharging: false, acConnected: false });
+          return;
+        }
+        try {
+          const initial = await window.electronAPI.getBattery();
+          setBat(initial);
+        } catch {
+          setBat({ hasBattery: false, percent: null, isCharging: false, acConnected: false });
+        }
+        unsub = window.electronAPI.subscribeBattery((b) => setBat(b));
+      })();
+      return () => { if (unsub) unsub(); };
+    }, []);
 
+    const hasAPI = !!window.electronAPI;
+    const hasBattery = bat?.hasBattery === true;
+    const percent = typeof bat?.percent === 'number' ? bat.percent : 0;
+    const unavailable = !hasAPI || !hasBattery || bat?.percent == null;
+    const title = unavailable
+      ? 'סוללה: לא זמין'
+      : `סוללה: ${percent}%${bat?.isCharging ? ' (בטעינה)' : ''}`;
+
+    return (
+      <div title={title} aria-label={title} style={{ position: 'absolute', top: 10, left: 10, width: 36, height: 36 }}>
+        <BatteryIcon
+          percent={percent}
+          charging={!!bat?.isCharging}
+          showPercent={true}
+          clipId={clipId}
+          unavailable={unavailable}
+        />
+      </div>
+    );
+  }
+  */
+
+  function HomeStyleBattery() {
+    const bat = useBattery();
+    const clipId = useId?.() || 'header-home-bat';
+
+    /*
+    const batteryDemoStates = [
+      { hasBattery: true, percent: 100, isCharging: false },
+      { hasBattery: true, percent: 65, isCharging: false },
+      { hasBattery: true, percent: 35, isCharging: false },
+      { hasBattery: true, percent: 12, isCharging: false },
+      { hasBattery: true, percent: 8, isCharging: true },
+      { hasBattery: false, percent: null, isCharging: false }
+    ];
+    const [demoIndex, setDemoIndex] = useState(0);
+    useEffect(() => {
       const id = setInterval(() => {
         setDemoIndex((prev) => (prev + 1) % batteryDemoStates.length);
       }, 3000);
       return () => clearInterval(id);
-    }, [hasElectron]);
+    }, []);
+    const bat = batteryDemoStates[demoIndex];
+    */
 
-    const bat = hasElectron ? liveBat : batteryDemoStates[demoIndex];
     const hasBattery = bat?.hasBattery === true;
     const percent = typeof bat?.percent === 'number' ? bat.percent : 0;
     const unavailable = !hasBattery || bat?.percent == null;
@@ -121,69 +144,6 @@
           )}
         </svg>
         <span className="header-battery-percent">{label}</span>
-      </div>
-    );
-  }
-
-  function BatteryButton() {
-    const [bat, setBat] = useState(null);
-    const clipId = useId?.() || 'bat-clip-fixed';
-
-    useEffect(() => {
-      let unsub;
-      (async () => {
-        if (!window.electronAPI) {
-          // No Electron → still show widget as unavailable
-          setBat({ hasBattery: false, percent: null, isCharging: false, acConnected: false });
-          return;
-        }
-        try {
-          const initial = await window.electronAPI.getBattery();
-          setBat(initial);
-        } catch {
-          setBat({ hasBattery: false, percent: null, isCharging: false, acConnected: false });
-        }
-        unsub = window.electronAPI.subscribeBattery((b) => setBat(b));
-      })();
-      return () => { if (unsub) unsub(); };
-    }, []);
-
-    const hasAPI = !!window.electronAPI;
-    const hasBattery = bat?.hasBattery === true;
-    const percent = typeof bat?.percent === 'number' ? bat.percent : 0;
-    const unavailable = !hasAPI || !hasBattery || bat?.percent == null;
-
-    const title = unavailable
-      ? 'סוללה: לא זמין'
-      : `סוללה: ${percent}%${bat?.isCharging ? ' (בטעינה)' : ''}`;
-
-    return (
-      <div
-        title={title}
-        aria-label={title}
-        style={{
-          position: 'absolute',
-          top: 10,
-          left: 10,
-          width: 36,
-          height: 36,
-          borderRadius: 10,
-          background: 'rgba(255,255,255,0.95)',
-          border: '1px solid rgba(0,0,0,0.15)',
-          display: 'grid',
-          placeItems: 'center',
-          boxShadow: '0 4px 14px rgba(0,0,0,0.10)',
-          zIndex: 60,
-          pointerEvents: 'none', // לא חוסם קליקים על הלוגו שמתחת
-        }}
-      >
-        <BatteryIcon
-          percent={percent}
-          charging={!!bat?.isCharging}
-          showPercent={true}
-          clipId={clipId}
-          unavailable={unavailable}
-        />
       </div>
     );
   }
