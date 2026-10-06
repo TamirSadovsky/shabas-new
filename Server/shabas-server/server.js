@@ -4,8 +4,7 @@ const cors = require('cors');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
-const { exec } = require('child_process');
-const { spawn } = require('child_process');
+const { exec, execFile, spawn } = require('child_process');
 const { getPositiveInteger } = require('./requestParams');
 
 const app = express();
@@ -89,6 +88,71 @@ app.post('/brightness', async (req, res) => {
     } catch (error) {
         console.error("Error:", error);
         res.status(500).json({ error: 'Failed to set brightness', details: error.message });
+    }
+});
+
+const BATTERY_CACHE_MS = 10000;
+const unavailableBattery = {
+    hasBattery: false,
+    percent: null,
+    isCharging: false,
+    acConnected: false
+};
+let batteryCache = { at: 0, value: null };
+
+const execFileCommand = (file, args) => new Promise((resolve, reject) => {
+    execFile(file, args, { windowsHide: true }, (error, stdout) => {
+        if (error) {
+            reject(error);
+            return;
+        }
+        resolve(stdout);
+    });
+});
+
+const readWindowsBattery = async () => {
+    const stdout = await execFileCommand('powershell.exe', [
+        '-NoProfile',
+        '-Command',
+        'Get-CimInstance Win32_Battery | Select-Object EstimatedChargeRemaining, BatteryStatus | ConvertTo-Json -Compress'
+    ]);
+    const text = String(stdout || '').trim();
+    if (!text || text === 'null') {
+        return unavailableBattery;
+    }
+
+    const parsed = JSON.parse(text);
+    const rows = Array.isArray(parsed) ? parsed : [parsed];
+    const row = rows.find((item) => item && Number.isFinite(Number(item.EstimatedChargeRemaining)));
+    if (!row) {
+        return unavailableBattery;
+    }
+
+    const percent = Number(row.EstimatedChargeRemaining);
+    const status = Number(row.BatteryStatus);
+    const chargingStatus = status >= 6 && status <= 9;
+    const onAcStatus = status === 2 || status === 3;
+    return {
+        hasBattery: true,
+        percent,
+        isCharging: chargingStatus || (onAcStatus && percent < 100),
+        acConnected: chargingStatus || onAcStatus
+    };
+};
+
+app.get('/api/battery', async (req, res) => {
+    const now = Date.now();
+    if (batteryCache.value && now - batteryCache.at < BATTERY_CACHE_MS) {
+        return res.json(batteryCache.value);
+    }
+
+    try {
+        const value = await readWindowsBattery();
+        batteryCache = { at: now, value };
+        res.json(value);
+    } catch (error) {
+        console.error('Battery read failed:', error);
+        res.status(500).json(unavailableBattery);
     }
 });
 

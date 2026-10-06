@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import MediaRow from '../../componenets/MediaRow/MediaRow';
 import { PowerButton } from '../../componenets/Sliders/PowerSlider/PowerSlider.jsx';
 import axiosInstance from '../../constants/axios.config.js';
+import useBattery from '../../constants/useBattery';
 import { resolveMediaUrl } from '../../constants/mediaUrl.js';
 
 import './HomePage.css';
@@ -47,6 +48,7 @@ const ensureMediaFileExists = async (url) => {
         return false;
     }
 };
+/*
 const batteryDemoStates = [
     { hasBattery: true, percent: 100, isCharging: false },
     { hasBattery: true, percent: 65, isCharging: false },
@@ -55,6 +57,7 @@ const batteryDemoStates = [
     { hasBattery: true, percent: 8, isCharging: true },
     { hasBattery: false, percent: null, isCharging: false }
 ];
+*/
 
 // ==========================================
 // BATTERY COMPONENTS (Figma Design)
@@ -102,33 +105,19 @@ function BatteryIcon({ percent = 0, charging = false, showPercent = true, clipId
 
 /* Smart Battery Button */
 function BatteryButton() {
-    const [demoIndex, setDemoIndex] = useState(0);
-    const [liveBat, setLiveBat] = useState(null);
+    const bat = useBattery();
     const clipId = useId?.() || 'bat-clip-fixed';
-    const hasElectron = typeof window !== 'undefined' && !!window.electronAPI;
 
+    /*
+    const [demoIndex, setDemoIndex] = useState(0);
     useEffect(() => {
-        if (hasElectron) {
-            let unsub;
-            (async () => {
-                try {
-                    const initial = await window.electronAPI.getBattery();
-                    setLiveBat(initial);
-                } catch {
-                    setLiveBat({ hasBattery: false, percent: null, isCharging: false });
-                }
-                unsub = window.electronAPI.subscribeBattery?.((next) => setLiveBat(next));
-            })();
-            return () => { if (unsub) unsub(); };
-        }
-
         const id = setInterval(() => {
             setDemoIndex((prev) => (prev + 1) % batteryDemoStates.length);
         }, 3000);
         return () => clearInterval(id);
-    }, [hasElectron]);
-
-    const bat = hasElectron ? liveBat : batteryDemoStates[demoIndex];
+    }, []);
+    const bat = batteryDemoStates[demoIndex];
+    */
     const hasBattery = bat?.hasBattery === true;
     const percent = typeof bat?.percent === 'number' ? bat.percent : 0;
     const unavailable = !hasBattery || bat?.percent == null;
