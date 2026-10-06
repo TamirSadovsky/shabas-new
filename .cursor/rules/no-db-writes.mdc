@@ -1,0 +1,14 @@
+---
+description: The agent never changes any database; it only writes SQL files for the user to run
+alwaysApply: true
+---
+
+# No DB changes by the agent
+
+The user makes all database changes himself.
+
+- Never run anything that writes to a DB (develop, local, or prod): no ALTER, CREATE, DROP, UPDATE, INSERT, DELETE, or EXEC of a procedure that writes.
+- The most the agent may do is write a `.sql` file (e.g. under `Server/shabas-server/sql/`) and tell the user what it does and in which order to run it.
+- Read-only SELECT queries (data, `INFORMATION_SCHEMA`, `OBJECT_DEFINITION`) are allowed for investigation.
+- Code must keep working before the user runs the script. Treat new columns as optional (e.g. `q.ConnectMode ?? null`).
+- SQL files should be safe to run twice: `IF COL_LENGTH(...) IS NULL`, `CREATE OR ALTER`.

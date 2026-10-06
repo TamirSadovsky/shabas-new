@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import ConnectTheDotsElement from './ConnectTheDotsElement';
 import './ConnectTheDots.css'
 import Xarrow from "react-xarrows";
@@ -6,184 +6,249 @@ import AudioPlayer from '../AudioPlayer/AudioPlayer';
 import SubmitButton from '../SubmitButton/SubmitButton';
 import x_mark from '../../assets/x_mark.svg'
 import check_mark from '../../assets/check-empty.svg'
-import { getNumberFromString, shouldHideInstructionTitle } from '../../constants/utils';
+import { shouldHideInstructionTitle } from '../../constants/utils';
 import { useSelector } from 'react-redux';
 import logServiceInstance from '../../logService';
-import { Position } from 'react-flow-renderer';
+import {
+    WORD_PREFIX,
+    CATEGORY_PREFIX,
+    makeLine,
+    lineKey,
+    normaliseLines,
+    correctPairsToLines,
+    toggleLine,
+    scoreLines,
+} from './connectLines';
 
-const convertCorrectAnswers = (correctAnswers) => {
-    return correctAnswers.map(answer => {
-        console.log("entries", Object.entries(answer))
-      const [leftId , rightId] = Object.entries(answer)[0];
-      return {
-        start: `element-right-${parseInt(rightId)}`,
-        end: `element-left-${parseInt(leftId)}`
-      };
-    });
-};
+const BADGE_COLLISION_PX = 18;
+const BADGE_SPREAD_PX = 30;
 
-const ConnectTheDots = ({pageId, nextLevel, completeLevel, setQuestions, questionInfo, questionId, increaseLevel}) => {
+const ConnectTheDots = ({pageId, completeLevel, setQuestions, questionInfo, questionId, nextLevel, increaseLevel}) => {
     const userState = useSelector(state => state.user)
-    const [lines, setLines] = useState(questionInfo.lines || []);
-    const [currentStart, setCurrentStart] = useState(null);
-    const [renderArrows, setRenderArrows] = useState(false)
+    const [lines, setLines] = useState(() => normaliseLines(questionInfo.lines));
+    const [selected, setSelected] = useState(null);
     const [submitted, setSubmitted] = useState(questionInfo.done || false);
     const [isCorrect, setIsCorrect] = useState(questionInfo.correct || '');
-    const [correctAnswers, setCorrectAnswers] = useState(questionInfo.correctAnswers || [])
-    let convertedAnswers
+    const [correctAnswers, setCorrectAnswers] = useState(() => normaliseLines(questionInfo.correctAnswers));
+    const [hoveredKey, setHoveredKey] = useState(null);
+    const [badgeOffsets, setBadgeOffsets] = useState({});
 
-    useEffect(()=>{
-        // Check if the question has already been answered
+    const isOneToOne = Number(questionInfo.connectMode) === 1;
+    const correctPairs = useMemo(() => correctPairsToLines(questionInfo.correctAnswerId), [questionInfo.correctAnswerId]);
+    const correctKeys = useMemo(() => new Set(correctPairs.map(lineKey)), [correctPairs]);
+    const checkedKeys = useMemo(() => new Set(correctAnswers.map(lineKey)), [correctAnswers]);
+
+    useEffect(() => {
         if (questionInfo.done) {
-            console.log("questionInfo ", questionInfo.isCorrect)
-            const correctArray = []
-            convertedAnswers = convertCorrectAnswers(questionInfo.correctAnswerId);
-            setCorrectAnswers(convertedAnswers)
-            setLines(convertedAnswers)
-            setIsCorrect('fully-correct');  // Mark as fully correct
-            setSubmitted(true); // Mark it as already submitted
-            // setRenderArrows(true)
+            setCorrectAnswers(correctPairs);
+            setLines(correctPairs);
+            setIsCorrect('fully-correct');
+            setSubmitted(true);
         }
-        // setRenderArrows(true)
-    }, [questionInfo]);
+    }, [questionInfo.done, correctPairs]);
+
+    const saveLines = (nextLines, extra = {}) => {
+        setQuestions(prev => ({
+            ...prev,
+            [questionId]: {
+                ...prev[questionId],
+                lines: nextLines,
+                ...extra,
+            }
+        }));
+    };
+
+    const applyToggle = (line) => {
+        const nextLines = toggleLine(lines, line, isOneToOne);
+        setLines(nextLines);
+        saveLines(nextLines);
+    };
+
+    const removeLine = (key) => {
+        if (submitted) return;
+        const nextLines = lines.filter(l => lineKey(l) !== key);
+        setLines(nextLines);
+        saveLines(nextLines);
+        setHoveredKey(null);
+    };
 
     const handleCircleClick = (id) => {
         if (submitted) return;
-        console.log("lines", lines)
-        const startIndex = currentStart?.split('-')[1] || '';
-
-        const endIndex = id.split('-')[1] || '';
-        let currentLines;
-        console.log("Start: ", id, " End:", currentStart)
-        
-        // && endIndex != 'left'
-        if (currentStart === null ) {
-            setCurrentStart(id);
-            document.getElementById(id + '_wrap')?.classList.add('active')
+        if (selected === null) {
+            setSelected(id);
             return;
-        } else {
-            document.getElementById(id  + '_wrap')?.classList.add('active')
-            const lineExists = lines.some(line =>
-                (line.start === currentStart || line.end === id) ||
-                (line.start === id || line.end === currentStart)
-            );
-            const newLines = lines.filter(line => (
-                (line.start != currentStart &&  line.end != id) && (line.start != id && line.end != currentStart)
-            ))
-            if (((startIndex == 'right' && endIndex == "left") || (startIndex == 'left' && endIndex == "right")) ) {
-                currentLines = [...newLines, { start: currentStart, end: id}]
-                setLines([...newLines, { start: currentStart, end: id }]);
-            }
-            setCurrentStart(null);
         }
-
-        const strippedArray = currentLines.flatMap(item => [item.start, item.end]);
-        Array.from(document.getElementsByClassName('CTD-element_wrapper')).map(element => {
-            console.log("element wrapper ", element)
-            let exists;
-            strippedArray.forEach(line => {
-                console.log("element", line, element.id)
-                if(line == element.id.replace('_wrap', '')){
-                    exists = true
-                }
-            })
-            if(!exists){
-                document.getElementById(element.id)?.classList.remove('active')
-            }
-        });
+        if (selected === id) {
+            setSelected(null);
+            return;
+        }
+        const line = makeLine(selected, id);
+        if (!line) {
+            setSelected(id);
+            return;
+        }
+        applyToggle(line);
+        setSelected(null);
     };
 
-    const handleReset = ()=>{
-        setLines([]);
-        setSubmitted(false)
-        setCorrectAnswers([])
-        Array.from(document.getElementsByClassName('CTD-element_wrapper')).forEach(element => {
-            document.getElementById(element.id).classList.remove('active')
+    useEffect(() => {
+        const onKeyDown = (event) => {
+            if (event.key === 'Escape') setSelected(null);
+        };
+        window.addEventListener('keydown', onKeyDown);
+        return () => window.removeEventListener('keydown', onKeyDown);
+    }, []);
+
+    const handlePageClick = (event) => {
+        if (!event.target.closest('.CTD-element_wrapper, .CTD-delete-badge')) {
+            setSelected(null);
+        }
+    };
+
+    const computeBadgeOffsets = useCallback(() => {
+        const points = lines.map(line => {
+            const startEl = document.getElementById(line.start);
+            const endEl = document.getElementById(line.end);
+            if (!startEl || !endEl) return null;
+            const a = startEl.getBoundingClientRect();
+            const b = endEl.getBoundingClientRect();
+            const ax = a.left + a.width / 2;
+            const ay = a.top + a.height / 2;
+            const bx = b.left + b.width / 2;
+            const by = b.top + b.height / 2;
+            const length = Math.hypot(bx - ax, by - ay) || 1;
+            return {
+                key: lineKey(line),
+                x: (ax + bx) / 2,
+                y: (ay + by) / 2,
+                ux: (bx - ax) / length,
+                uy: (by - ay) / length,
+            };
+        }).filter(Boolean);
+
+        const groups = [];
+        points.forEach(point => {
+            const group = groups.find(g =>
+                Math.abs(g[0].x - point.x) < BADGE_COLLISION_PX &&
+                Math.abs(g[0].y - point.y) < BADGE_COLLISION_PX
+            );
+            if (group) group.push(point);
+            else groups.push([point]);
         });
-        setQuestions(prev => ({
-            ...prev,
-            [questionId]:{
-                ...prev[questionId],
-                lines:[],
-            }
-        }))
-        setIsCorrect(null)
+
+        const offsets = {};
+        groups.forEach(group => {
+            if (group.length < 2) return;
+            group.forEach((point, index) => {
+                const shift = (index - (group.length - 1) / 2) * BADGE_SPREAD_PX;
+                offsets[point.key] = { dx: point.ux * shift, dy: point.uy * shift };
+            });
+        });
+        setBadgeOffsets(offsets);
+    }, [lines]);
+
+    useLayoutEffect(() => {
+        computeBadgeOffsets();
+        window.addEventListener('resize', computeBadgeOffsets);
+        return () => window.removeEventListener('resize', computeBadgeOffsets);
+    }, [computeBadgeOffsets]);
+
+    const handleReset = () => {
+        setLines([]);
+        setSelected(null);
+        setSubmitted(false);
+        setCorrectAnswers([]);
+        setIsCorrect(null);
+        saveLines([]);
     };
 
     const handleSubmit = () => {
-        if(submitted){
-            setCorrectAnswers([])
-            setSubmitted(false)
-            setIsCorrect('')
+        if (submitted) {
+            setCorrectAnswers([]);
+            setSubmitted(false);
+            setIsCorrect('');
             return;
         }
-        
-        setSubmitted(true);
-        // Create a list of correct answers for comparison
-        const questionAnswers = questionInfo.correctAnswerId.flatMap(obj => 
-            Object.entries(obj).map(([key, value]) => ({
-                start: `element-left-${key}`,
-                end: `element-right-${value}`
-            }))
-        );
-        
 
-        // Count correct connections
-        let correctCount = 0;
-        const correctArray = []
-        lines.forEach(line => {
-            questionAnswers.forEach(correct => {
-                console.log("correct, ", correct);
-                if ((line.start === correct.start && line.end === correct.end ) || (line.start === correct.end && line.end === correct.start)) {
-                    console.log("Correct??")
-                    correctArray.push({start: line.start, end: line.end})
-                    correctCount++;
-                }
-            });
-        });
-        setCorrectAnswers(correctArray)
-        // Determine the correctness
-        let correctStatus;
-        if (correctCount === questionAnswers.length) {
-            correctStatus = 'fully-correct';
+        setSelected(null);
+        setSubmitted(true);
+
+        const { status: correctStatus, correctLines } = scoreLines(lines, correctKeys);
+        setCorrectAnswers(correctLines);
+        if (correctStatus === 'fully-correct') {
             completeLevel();
-        } else if (correctCount > 0) {
-            correctStatus = 'partly-correct';
-        } else {
-            correctStatus = 'incorrect';
         }
         setIsCorrect(correctStatus);
-        console.log("lines on submit, ",lines );
-        setQuestions(prev => ({
-            ...prev, 
-            [questionId]:{
-                ...prev[questionId],
-                lines:lines,
-                correctAnswers:correctArray,
-                done:correctStatus != 'fully-correct' ? false : true,
-            }
-        }))
-        const data = {
+
+        saveLines(lines, {
+            correctAnswers: correctLines,
+            done: correctStatus === 'fully-correct',
+        });
+
+        logServiceInstance.log({
             userId: userState.id,
-            categoryId:pageId,
-            questionId:questionInfo.id,
-            isQuestion:1,
-            isCorrect:correctStatus != 'fully-correct' ? 0 : 1,
-            answer:JSON.stringify(correctArray)
-        }
-        // sendToLog(data)
-        logServiceInstance.log(data)
-        
+            categoryId: pageId,
+            questionId: questionInfo.id,
+            isQuestion: 1,
+            isCorrect: correctStatus === 'fully-correct' ? 1 : 0,
+            answer: JSON.stringify(lines.map(line => ({
+                start: line.start,
+                end: line.end,
+                correct: correctKeys.has(lineKey(line)),
+            })))
+        });
     };
 
-    const isCorrectLine = (start,end)=>{
-       return correctAnswers.some(answer => start === answer.start && end === answer.end);
-    }
+    const dotState = (id) => {
+        const touching = lines.filter(line => line.start === id || line.end === id);
+        const hasWrong = submitted && touching.some(line => !checkedKeys.has(lineKey(line)));
+        return {
+            active: touching.length > 0 || selected === id,
+            selected: selected === id,
+            correct: submitted && touching.length > 0 && !hasWrong,
+        };
+    };
+
+    const lineStyle = (line) => {
+        const key = lineKey(line);
+        if (submitted) {
+            return checkedKeys.has(key)
+                ? { color: '#72C770', strokeWidth: 2, dashness: false }
+                : { color: '#D03E3E', strokeWidth: 2, dashness: { strokeLen: 6, nonStrokeLen: 4 } };
+        }
+        if (hoveredKey === key) {
+            return { color: '#D03E3E', strokeWidth: 4, dashness: false };
+        }
+        return { color: '#3072AF', strokeWidth: 2, dashness: { strokeLen: 10, nonStrokeLen: 3, animation: 1 } };
+    };
+
+    const renderDeleteBadge = (line) => {
+        const key = lineKey(line);
+        const offset = badgeOffsets[key] || { dx: 0, dy: 0 };
+        return (
+            <button
+                type="button"
+                className={`CTD-delete-badge ${hoveredKey === key ? 'hovered' : ''}`}
+                style={{ transform: `translate(${offset.dx}px, ${offset.dy}px)` }}
+                aria-label="מחיקת קו"
+                title="מחיקת קו"
+                onMouseEnter={() => setHoveredKey(key)}
+                onMouseLeave={() => setHoveredKey(prev => (prev === key ? null : prev))}
+                onClick={(event) => {
+                    event.stopPropagation();
+                    removeLine(key);
+                }}
+            >
+                ×
+            </button>
+        );
+    };
+
     const leftElements = Object.values(questionInfo.options).filter(option => option.side == 1);
     const rightElements = Object.values(questionInfo.options).filter(option => option.side == 0);
     return (
         <>
-            <div className='CTD-page'>
+            <div className='CTD-page' onClick={handlePageClick}>
                 {!shouldHideInstructionTitle(questionInfo) && (
                     <header className='CTD-header'>
                         <h3>מתח קווים בין המשפטים למושגים המתאימים</h3>
@@ -192,61 +257,56 @@ const ConnectTheDots = ({pageId, nextLevel, completeLevel, setQuestions, questio
                 <div className='CTD_wrapper'>
                     <div className='image-area'> </div>
                     {rightElements.map((element, index) => {
+                        const id = `${WORD_PREFIX}${element.id}`;
                         return(
-                            <div style={{display:"flex", flexDirection: "row-reverse", alignItems: "center", gap: "6px",   gridColumn: 2, gridRow: index + 1, justifyContent:'flex-end' }}>
+                            <div key={id} style={{display:"flex", flexDirection: "row-reverse", alignItems: "center", gap: "6px",   gridColumn: 2, gridRow: index + 1, justifyContent:'flex-end' }}>
                                 <ConnectTheDotsElement
-                                    key={`element-left-${index}`}
-                                    id={`element-left-${element.id}`}
+                                    id={id}
                                     text={element.label}
                                     onCircleClick={handleCircleClick}
                                     style={{ gridColumn: 2, gridRow: index + 1, justifySelf:'flex-start'}}
-                                    correctAnswers={correctAnswers}
-                                    submitted={submitted}
+                                    {...dotState(id)}
                                 />
-                                <AudioPlayer key={`voice-right-${index}`} audioName={element.audio}></AudioPlayer>
+                                <AudioPlayer audioName={element.audio}></AudioPlayer>
                             </div>
                         )
                     })}
-                    {leftElements.map((element, index) => (
-                        <div style={{display:"flex", flexDirection: "row-reverse", alignItems: "center", gap: "6px",  gridColumn: 3, gridRow: index + 1 }}>
-                            <AudioPlayer key={`voice-left-${index}`} audioName={element.audio}></AudioPlayer>
-                            <ConnectTheDotsElement
-                                key={`element-right-${index}`}
-                                id={`element-right-${element.id}`}
-                                text={element.label}
-                                onCircleClick={handleCircleClick}
-                                className={'last-column-item'}
-                                style={{minWidth:'80%', paddingLeft:'8px'}}
-                                correctAnswers={correctAnswers}
-                                submitted={submitted}
-                            />
-                        </div>
-                    ))}
-            
-                        {lines?.map((line, index) => {
-                            const isCorrect = isCorrectLine(line.start, line.end);
-                            const color = isCorrect ? '#72C770' : '#3072AF'
-                            const dash = isCorrect ? false : { strokeLen: 10, nonStrokeLen: 3, animation: 1 }
-                            console.log('lines ', line.start, line.end)
-                            console.log(document.getElementById(line.start), document.getElementById(line.end));
-
-                            return (
-                                <Xarrow 
-                                    key={`arrow-${index}`} 
-                                    start={line.start} 
-                                    end={line.end}
-                                    color={color}
-                                    strokeWidth={2}
-                                    headSize={1}
-                                    curveness={0}
-                                    animateDrawing={0.2}
-                                    className={`xarrow-container`}
-                                    dashness={dash}
-                                    startAnchor="middle"
-                                    endAnchor="middle"
+                    {leftElements.map((element, index) => {
+                        const id = `${CATEGORY_PREFIX}${element.id}`;
+                        return (
+                            <div key={id} style={{display:"flex", flexDirection: "row-reverse", alignItems: "center", gap: "6px",  gridColumn: 3, gridRow: index + 1 }}>
+                                <AudioPlayer audioName={element.audio}></AudioPlayer>
+                                <ConnectTheDotsElement
+                                    id={id}
+                                    text={element.label}
+                                    onCircleClick={handleCircleClick}
+                                    className={'last-column-item'}
+                                    style={{minWidth:'80%', paddingLeft:'8px'}}
+                                    {...dotState(id)}
                                 />
-                            )
-                        })}
+                            </div>
+                        );
+                    })}
+
+                    {lines.map(line => {
+                        const style = lineStyle(line);
+                        return (
+                            <Xarrow
+                                key={lineKey(line)}
+                                start={line.start}
+                                end={line.end}
+                                color={style.color}
+                                strokeWidth={style.strokeWidth}
+                                headSize={1}
+                                curveness={0}
+                                animateDrawing={0.2}
+                                dashness={style.dashness}
+                                startAnchor="middle"
+                                endAnchor="middle"
+                                labels={submitted ? undefined : { middle: renderDeleteBadge(line) }}
+                            />
+                        )
+                    })}
                 </div>
                 <div className='CTD-button_section'>
                     <div className='indication'>
@@ -264,7 +324,6 @@ const ConnectTheDots = ({pageId, nextLevel, completeLevel, setQuestions, questio
                         submitted={submitted}
                         isCorrect={isCorrect}
                         questionInfo={questionInfo}
-                        // hide={hide}
                         increaseLevel={increaseLevel}
                     />
                 </div>

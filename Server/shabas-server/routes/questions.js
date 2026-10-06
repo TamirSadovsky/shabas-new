@@ -93,6 +93,7 @@ router.get('/get_questions_by_bookid/:id', async (req, res) => {
                 explanation: q.Explanation,
                 img: q.PicName,
                 bgType: q.BgType,
+                connectMode: q.ConnectMode ?? null,
                 pageId: q.PageID,
                 done: q.QAnswerdRight,
                 userAnswer: latestAnswer ? latestAnswer.Answer : "",

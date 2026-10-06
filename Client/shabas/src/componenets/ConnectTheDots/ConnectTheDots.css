@@ -69,3 +69,27 @@
 .active{
     background-color: white;
 }
+
+.CTD-delete-badge {
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    border-radius: 50%;
+    border: 2px solid #3072AF;
+    background: white;
+    color: #3072AF;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 16px;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+}
+
+.CTD-delete-badge:hover,
+.CTD-delete-badge.hovered {
+    border-color: #D03E3E;
+    background: #D03E3E;
+    color: white;
+}
