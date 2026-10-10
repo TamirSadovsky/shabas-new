@@ -1,17 +1,20 @@
-import { useState } from 'react'
 import './ConnectTheDotsElement.css'
 
 
-function ConnectTheDotsElement( {text, className, onCircleClick, id, style, correctAnswers, submitted} ) {
+function ConnectTheDotsElement( {text, className, onCircleClick, id, style, active, selected, correct} ) {
     const side =  id.split('-')[1] === 'left' ? 'left' : 'right';
     const cirecleSideStyle = {
         [side]: side == 'left' ? "93%" : "95%"
     }
-    // for single side correct sign only remove answer.end -> or check if side is left.
-    const correct = correctAnswers.some(answer => answer.start === id || answer.end === id);
+    const wrapperClasses = [
+        'CTD-element_wrapper',
+        className,
+        active ? 'active' : '',
+        selected ? 'CTD-selected' : '',
+    ].filter(Boolean).join(' ');
     return (
         <>  
-            <div id={id  + '_wrap'}  className={`CTD-element_wrapper ${className ? className : ''} ${correct ? 'active' : ''}`} style={style} onClick={() => onCircleClick(id)}>
+            <div id={id  + '_wrap'}  className={wrapperClasses} style={style} onClick={() => onCircleClick(id)}>
                 <div className='CTD-element_text'>
                     {text}
                 </div>

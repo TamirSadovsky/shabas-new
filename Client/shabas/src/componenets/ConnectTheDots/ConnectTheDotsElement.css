@@ -18,6 +18,11 @@
     background-color: white;
 }
 
+.CTD-element_wrapper.CTD-selected{
+    background-color: white;
+    border: solid 2px #3072AF;
+}
+
 .CTD-element_circle{
     position: absolute;
     width: 24px;
