@@ -44,7 +44,7 @@ const DragNDrop = ({nextLevel, completeLevel, setQuestions, questionInfo, questi
     
     function handleDragEnd({over, active}) {
         setDragStart(false);
-        if(!over.id) return;
+        if(!over?.id) return;
         setParent(prev=>({
             ...prev,
             [over.id]:active.id

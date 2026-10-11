@@ -4,7 +4,6 @@
   import PriamryButton from '../PrimaryButton/PrimaryButton';
   import user_icon from '../../assets/user_icon.svg';
   import sbs_logo from '../../assets/sbs_logo.svg';
-  import logo_new from '../../assets/logo_new.png';
   import axiosInstance from '../../constants/axios.config.js';
   import useBattery from '../../constants/useBattery';
   import logServiceInstance from '../../logService';
@@ -148,7 +147,7 @@
     );
   }
 
-function Header({ setPageDirection }) {
+function Header({ setPageDirection, routePage, routeId }) {
   const dispatch = useDispatch();
   const userState = useSelector((state) => state.user);
   const categoryState = useSelector((state) => state.level);
@@ -189,7 +188,7 @@ function Header({ setPageDirection }) {
     };
 
     const RIGHT_OFFSET_PX = 150;
-    const isWelcome = pageState.page === 'welcome';
+    const isWelcome = routePage === 'welcome';
     const canShowPower = typeof window !== 'undefined' && window.electronAPI && isWelcome;
 
     useEffect(() => {
@@ -216,7 +215,6 @@ function Header({ setPageDirection }) {
               <HomeStyleBattery />
               <span className="header-welcome-title">יחידות לימוד ללמידה עצמית</span>
               <div className="header-welcome-logos">
-                <img className="header-red-logo" src={logo_new} alt="atid" />
                 <img
                   className="header-sbs-logo"
                   data-sbs-exit-logo="true"
@@ -273,19 +271,19 @@ function Header({ setPageDirection }) {
               />
               </div>
 
-              {pageState.page !== 'final_work' &&
+              {routePage !== 'final_work' &&
                 categoryState['regular'] &&
-                categoryState['regular'][pageState.id] && (
+                categoryState['regular'][routeId] && (
                   <div className="header_title">
-                    יחידת לימוד: {categoryState['regular'][pageState.id].name}
+                    יחידת לימוד: {categoryState['regular'][routeId].name}
                   </div>
                 )}
 
-              {pageState.page === 'final_work' &&
+              {routePage === 'final_work' &&
                 categoryState['finalWork'] &&
-                categoryState['finalWork'][pageState.id] && (
+                categoryState['finalWork'][routeId] && (
                   <div className="header_title">
-                    פרויקט גמר: {categoryState['finalWork'][pageState.id].name}
+                    פרויקט גמר: {categoryState['finalWork'][routeId].name}
                   </div>
                 )}
 
