@@ -5,7 +5,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const { exec, execFile, spawn } = require('child_process');
-const { getPositiveInteger } = require('./requestParams');
+const { getPositiveInteger, sanitizeCssColor } = require('./requestParams');
 
 const app = express();
 const port = 3000;
@@ -171,7 +171,9 @@ app.get('/books', async (req, res) => {
                 CASE
                     WHEN NULLIF(LTRIM(RTRIM([AudioLink])), '') IS NULL THEN 0
                     ELSE 1
-                END AS [hasAudio]
+                END AS [hasAudio],
+                [HeaderBgColor] AS [headerBgColor],
+                [HeaderTextColor] AS [headerTextColor]
             FROM [dbo].[Books]
             WHERE ISNULL([NotActive], 0) = 0
             ORDER BY ISNULL([OrderID], 2147483647), [BookID]
@@ -185,7 +187,9 @@ app.get('/books', async (req, res) => {
                 : null,
             audioLink: book.hasAudio
                 ? `/media/books/${book.id}/audio`
-                : null
+                : null,
+            headerBgColor: sanitizeCssColor(book.headerBgColor),
+            headerTextColor: sanitizeCssColor(book.headerTextColor)
         }));
 
         res.status(200).json({ data: books });

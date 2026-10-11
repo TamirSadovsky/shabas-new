@@ -85,6 +85,36 @@ function App() {
         }
     }, [pageState.page, pageState.bookImage])
 
+    useEffect(() => {
+        const headerBgColor =
+            typeof pageState.headerBgColor === 'string' &&
+            pageState.headerBgColor.trim().length > 0
+                ? pageState.headerBgColor.trim()
+                : null
+        const headerTextColor =
+            typeof pageState.headerTextColor === 'string' &&
+            pageState.headerTextColor.trim().length > 0
+                ? pageState.headerTextColor.trim()
+                : null
+
+        if (headerBgColor) {
+            document.body.style.setProperty('--header-bg', headerBgColor)
+        } else {
+            document.body.style.removeProperty('--header-bg')
+        }
+
+        if (headerTextColor) {
+            document.body.style.setProperty('--header-text', headerTextColor)
+        } else {
+            document.body.style.removeProperty('--header-text')
+        }
+
+        return () => {
+            document.body.style.removeProperty('--header-bg')
+            document.body.style.removeProperty('--header-text')
+        }
+    }, [pageState.headerBgColor, pageState.headerTextColor])
+
     // ░░░░░░░░░░░░░░░░░░░░░░
     // ╔═╗ FIX: הגנה על questionPage 
     // ░░░░░░░░░░░░░░░░░░░░░░
