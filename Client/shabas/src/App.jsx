@@ -13,6 +13,20 @@ import ToturialPage from './pages/TutorialPage/TutorialPage'
 import HomePage from './pages/HomePage/HomePage'
 import logServiceInstance from './logService'
 
+const pageVariants = {
+    enter: (direction) => ({
+        opacity: 1,
+        x: 0,
+        y: direction ? -768 : 768,
+    }),
+    center: { opacity: 1, x: 0, y: 0 },
+    exit: (direction) => ({
+        opacity: 1,
+        x: 0,
+        y: direction ? -768 : 768,
+    }),
+}
+
 function App() {
     const pageState = useSelector(state => state.page)
     const dispatch = useDispatch()
@@ -85,17 +99,23 @@ function App() {
             <Sliders setPageDirection={setPageDirection} />
 
             <div>
-                <AnimatePresence initial={false}>
+                <AnimatePresence initial={false} custom={pageDirection}>
                     <motion.div
                         key={pageState.page + '_' + pageState.bookId + '_' + pageState.id}
-                        initial={{ opacity: 1, x: 0, y: pageDirection ? -768 : 768 }}
-                        animate={{ opacity: 1, x: 0, y: 0 }}
-                        exit={{ opacity: 1, x: 0, y: pageDirection ? -768 : 768 }}
+                        custom={pageDirection}
+                        variants={pageVariants}
+                        initial="enter"
+                        animate="center"
+                        exit="exit"
                         transition={{ duration: 0.7 }}
                         className={pageState.page === 'home' ? 'page page-home' : 'page'}
                     >
                         {pageState.page !== 'home' && (
-                            <Header setPageDirection={setPageDirection} />
+                            <Header
+                                setPageDirection={setPageDirection}
+                                routePage={pageState.page}
+                                routeId={pageState.id}
+                            />
                         )}
 
                         {pageState.page === 'home' && (

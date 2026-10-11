@@ -106,7 +106,6 @@
     gap: 15px;
 }
 
-.hp-atid-logo,
 .hp-sbs_logo {
     height: 56px;
     width: auto;
@@ -390,13 +389,6 @@
 }
 
 /* Logos Sizes */
-.hp-atid-logo {
-    height: 50px;
-    /* cite: 557898.jpg */
-    width: 50px;
-    object-fit: contain;
-}
-
 .hp-sbs-logo {
     height: 56px;
     /* cite: 5578b4.jpg */

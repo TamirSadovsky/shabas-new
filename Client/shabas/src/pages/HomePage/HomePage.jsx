@@ -9,7 +9,6 @@ import { resolveMediaUrl } from '../../constants/mediaUrl.js';
 import './HomePage.css';
 import { cata1, cata4, cata5 } from '../../assets/cata_images.js';
 import sbs_logo from '../../assets/sbs_logo.svg';
-import logo_new from '../../assets/logo_new.png';
 import chevronIcon from '../../assets/chevron-right.png';
 
 const fallbackBook = {
@@ -148,7 +147,6 @@ const TopBar = ({ userName, onSbsLogoClick }) => (
         <div className="hp-header-right">
             <h1 className="hp-greeting-text">שלום {userName}</h1>
             <div className="hp-logo-group">
-                <img src={logo_new} alt="atid" className="hp-atid-logo" />
                 <img
                     src={sbs_logo}
                     alt="sbs"
