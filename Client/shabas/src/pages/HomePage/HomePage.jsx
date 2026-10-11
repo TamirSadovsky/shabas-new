@@ -383,7 +383,9 @@ function HomePage({ setPageDirection }) {
             type: 'PICK_BOOK',
             bookId: Number(book.id),
             bookName: book.name,
-            bookImage: book.image
+            bookImage: book.image,
+            headerBgColor: book.headerBgColor,
+            headerTextColor: book.headerTextColor
         });
     };
 

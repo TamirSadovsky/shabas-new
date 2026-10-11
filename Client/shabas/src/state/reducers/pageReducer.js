@@ -4,7 +4,9 @@ const initialState = {
     id: null,
     bookId: null,
     bookName: null,
-    bookImage: null
+    bookImage: null,
+    headerBgColor: null,
+    headerTextColor: null
 }
 
 
@@ -18,7 +20,9 @@ function pageReducer(state = initialState, action) {
                 id: null,
                 bookId: action.bookId,
                 bookName: action.bookName,
-                bookImage: action.bookImage || null
+                bookImage: action.bookImage || null,
+                headerBgColor: action.headerBgColor || null,
+                headerTextColor: action.headerTextColor || null
             };
         case 'PICK_CATEGORY':
             if (action.page === 'home') {
