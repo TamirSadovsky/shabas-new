@@ -21,6 +21,7 @@ function CategoryPage({triggerAnimation, setPageDirection}) {
     const levelState = useSelector(state => state.level['regular'])
     const pageState = useSelector(state => state.page)
     const [loadState, setLoadState] = useState('loading')
+    const [hasFinalWork, setHasFinalWork] = useState(false)
 
     const dispatch = useDispatch()
     const categoryImages = [cata1, cata2, cata3, cata4, cata5]
@@ -63,6 +64,24 @@ function CategoryPage({triggerAnimation, setPageDirection}) {
         dispatch({type:'PICK_CATEGORY', page:'final_work_category'})
     }
 
+    const fetchHasFinalWork = async (bookId, signal) => {
+        try {
+            setHasFinalWork(false)
+            const results = await axiosInstance.get('/questions/final_work_category', {
+                params: { bookId },
+                signal
+            })
+            const loadedCategories = Array.isArray(results.data?.recordset)
+                ? results.data.recordset
+                : []
+            setHasFinalWork(loadedCategories.length > 0)
+        } catch (e) {
+            if (e.code === 'ERR_CANCELED') return
+            console.log("Error fetching final work: ", e)
+            setHasFinalWork(false)
+        }
+    }
+
     const fetchCategories = async (bookId, signal)=>{
         try{
             setLoadState('loading')
@@ -83,7 +102,9 @@ function CategoryPage({triggerAnimation, setPageDirection}) {
 
     useEffect(()=>{
         const controller = new AbortController()
-        fetchCategories(pageState.bookId || 1, controller.signal);
+        const bookId = pageState.bookId || 1
+        fetchCategories(bookId, controller.signal);
+        fetchHasFinalWork(bookId, controller.signal);
         return () => controller.abort()
     },[pageState.bookId])
 
@@ -116,9 +137,11 @@ function CategoryPage({triggerAnimation, setPageDirection}) {
                         ))}
                 </section>
             </main>
-            <footer>
-                <FinalWorkButton onClick={handleFinalWork} type='gmar'/>
-            </footer>
+            {hasFinalWork && (
+                <footer>
+                    <FinalWorkButton onClick={handleFinalWork} />
+                </footer>
+            )}
         </>
     )
 }
