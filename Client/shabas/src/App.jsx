@@ -126,7 +126,9 @@ function App() {
 
     return (
         <>
-            <Sliders setPageDirection={setPageDirection} />
+            {pageState.page !== 'home' && (
+                <Sliders setPageDirection={setPageDirection} />
+            )}
 
             <div>
                 <AnimatePresence initial={false} custom={pageDirection}>
