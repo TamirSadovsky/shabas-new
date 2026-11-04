@@ -72,7 +72,7 @@ const LayoutwithAnimation = ({ page, children, title, audio,  totalLevel, curren
         setAnimationDistance(getAnimationDistance())
     }, [page])
     return (
-        <div>
+        <div className="reader-layout">
             <div style={{textAlign:'right', marginRight:'15px', color:'black'}}>{`עמוד ${currentPage} מתוך ${allPages}`}</div>
             <header>
                 <div className='question_header'>
