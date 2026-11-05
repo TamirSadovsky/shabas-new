@@ -272,14 +272,15 @@
 .video-thumb-img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
+    background: white;
 }
 
 .article-icon-img,
 .audio-thumb-img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
 }
 
 .audio-thumb-img {
@@ -484,7 +485,7 @@
 .card-thumb-img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
 }
 
 /* --- צד שמאל (אחוזים) --- */
